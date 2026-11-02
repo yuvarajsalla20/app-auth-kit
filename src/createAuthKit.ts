@@ -31,6 +31,8 @@ export interface AuthKitOptions {
   messages?: Record<string, string>;
   /** How long deleting an account may take before it gives up (ms). */
   deleteTimeoutMs?: number;
+  /** Shortest gap between two reset or change-password emails (ms). Stops accidental or abusive repeats. */
+  resetCooldownMs?: number;
 }
 
 /**
@@ -38,7 +40,7 @@ export interface AuthKitOptions {
  * the sign-in state hook and the friendly error text back. Nothing here is specific to any one app.
  */
 export const createAuthKit = (options: AuthKitOptions) => {
-  const { google = false, minPassword = 8, maxNickname = 20, deleteTimeoutMs = 30_000 } = options;
+  const { google = false, minPassword = 8, maxNickname = 20, deleteTimeoutMs = 30_000, resetCooldownMs = 60_000 } = options;
   const messages: Record<string, string> = { ...DEFAULT_MESSAGES, 'auth/weak-password': `Use at least ${minPassword} characters.`, ...options.messages };
 
   const requireAuth = (): Auth => {
@@ -66,6 +68,14 @@ export const createAuthKit = (options: AuthKitOptions) => {
       forgetNickname();
       throw e;
     }
+  };
+
+  // One reset or change-password email per cooldown, so a double tap or a script cannot flood an inbox.
+  let lastResetAt = 0;
+  const sendReset = async (email: string): Promise<void> => {
+    if (Date.now() - lastResetAt < resetCooldownMs) throw Object.assign(new Error('Wait before asking again.'), { code: 'auth/reset-cooldown' });
+    await sendPasswordResetEmail(requireAuth(), email);
+    lastResetAt = Date.now();
   };
 
   const hasPassword = (): boolean => !!options.auth?.currentUser?.providerData.some((p) => p.providerId === 'password');
@@ -96,13 +106,13 @@ export const createAuthKit = (options: AuthKitOptions) => {
     signInGoogle: () => attempt(() => signInWithPopup(requireAuth(), new GoogleAuthProvider())),
 
     /** Emails a reset link to an address (the "Forgot password" case). */
-    sendPasswordReset: (email: string) => sendPasswordResetEmail(requireAuth(), email.trim()),
+    sendPasswordReset: (email: string) => sendReset(email.trim()),
 
     /** Emails a reset link to the signed-in person's own address (the "Change password" case). */
     sendPasswordChange: () => {
       const email = requireAuth().currentUser?.email;
       if (!email) throw Object.assign(new Error('No email on this account.'), { code: 'auth/invalid-email' });
-      return sendPasswordResetEmail(requireAuth(), email);
+      return sendReset(email);
     },
 
     signOut: () => {
@@ -122,7 +132,7 @@ export const createAuthKit = (options: AuthKitOptions) => {
         : reauthenticateWithPopup(user, new GoogleAuthProvider()));
       // Without a signal the erase would wait forever, so give up and let them retry.
       await new Promise<void>((resolve, reject) => {
-        const timer = setTimeout(() => reject(Object.assign(new Error('timeout'), { code: 'auth/network-request-failed' })), deleteTimeoutMs);
+        const timer = setTimeout(() => reject(Object.assign(new Error('timeout'), { code: 'auth/delete-timeout' })), deleteTimeoutMs);
         eraseData().then(resolve, reject).finally(() => clearTimeout(timer));
       });
       await deleteUser(user);

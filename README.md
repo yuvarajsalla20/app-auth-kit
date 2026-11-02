@@ -46,13 +46,14 @@ const nickname = authKit.takeNickname();               // after sign-up, save it
 
 - Delete account re-authenticates first, runs **your** `eraseData` callback, then removes the login, and gives up after 30 s so it never hangs.
 - A failed sign-up never leaves its nickname behind for the next login; sign-out clears it.
+- Reset and change-password emails are limited to one per minute.
 - Wrong email, wrong password and unknown user all show the same message.
 - Every word on the screen can be reworded through `strings`.
 
 ## Install
 
-`"app-auth-kit": "github:yuvarajsalla20/app-auth-kit#v1.0.0"` in `package.json`.
+`"app-auth-kit": "git+https://github.com/yuvarajsalla20/app-auth-kit.git#<full commit SHA>"` in `package.json`. Pin a full commit SHA, not a tag, so a build always gets exactly the code you tested.
 Peer dependencies: `firebase`, `react`, `react-native`, `react-native-safe-area-context`.
 
 ---
-Version 1.0.0 - 2026-11-02 08:20 CST
+Version 1.1.0 - 2026-11-02 08:50 CST

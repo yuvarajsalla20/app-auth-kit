@@ -9,6 +9,11 @@ export const DEFAULT_MESSAGES: Record<string, string> = {
   'auth/requires-recent-login': 'For safety, sign out, sign in again, then retry.',
   'auth/too-many-requests': 'Too many attempts. Wait a minute and try again.',
   'auth/network-request-failed': 'No connection. Check your internet and try again.',
+  // Database (Firestore) errors that can surface while erasing an account.
+  unavailable: 'No connection. Check your internet and try again.',
+  'deadline-exceeded': 'No connection. Check your internet and try again.',
+  'auth/delete-timeout': 'Deleting is taking too long and may still finish. Check your connection, then try again.',
+  'auth/reset-cooldown': 'We just sent a link. Wait a minute before asking for another.',
   'auth/popup-closed-by-user': '',
   'auth/cancelled-popup-request': '',
   'auth/api-key-not-valid.-please-pass-a-valid-api-key.': 'The app is not set up correctly (API key). Please contact support.',
