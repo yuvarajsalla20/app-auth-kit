@@ -7,7 +7,7 @@ Themeable screen + auth functions + sign-in state hook, with nothing specific to
 
 | Piece | What it does |
 |---|---|
-| `createAuthKit({ auth })` | Sign in, sign up (+ optional nickname), Google (web), forgot password, change password (emailed link), sign out, delete account, `useAuth()` hook, friendly error text |
+| `createAuthKit({ auth })` | Sign in, sign up (+ optional nickname), Google and Apple (native sheets supplied by the app), forgot password, change password (emailed link), sign out, delete account, `useAuth()` hook, friendly error text |
 | `<SignInScreen />` | The sign-in / create-account screen. Looks come from `theme`, `brand`, `components`, `strings` |
 
 ## Use it
@@ -57,3 +57,22 @@ Peer dependencies: `firebase`, `react`, `react-native`, `react-native-safe-area-
 
 ---
 Version 1.1.0 - 2026-11-02 08:50 CST
+
+
+## Apple and Google on phones (v1.2)
+
+The kit has no native dependencies. The app supplies the phone's sign-in sheets; the kit signs the token in to Firebase,
+shows the buttons, re-confirms with the same method before deleting an account, and revokes Apple's token on delete.
+
+```ts
+createAuthKit({
+  auth,
+  native: {
+    apple: async () => ({ idToken, rawNonce, authorizationCode }),  // null if cancelled
+    google: async () => idToken,                                     // null if cancelled
+  },
+});
+```
+
+Pass `components={{ AppleButton }}` to use Apple's own button (recommended for App Store review).
+Firebase console: enable the Apple and Google providers, and keep "Link accounts that use the same email" on.

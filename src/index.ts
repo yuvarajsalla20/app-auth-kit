@@ -1,5 +1,5 @@
 export { createAuthKit } from './createAuthKit';
-export type { AuthKit, AuthKitOptions, AuthState } from './createAuthKit';
+export type { AppleResult, AuthKit, AuthKitOptions, AuthState, NativeProviders } from './createAuthKit';
 export { SignInScreen } from './SignInScreen';
 export type { SignInScreenProps } from './SignInScreen';
 export { DEFAULT_MESSAGES } from './messages';

@@ -26,6 +26,8 @@ export const DEFAULT_THEME: AuthTheme = {
 export interface AuthComponents {
   Text: ComponentType<ComponentProps<typeof RNText>>;
   TextInput: ComponentType<ComponentProps<typeof RNTextInput>>;
+  /** Apple's own button (it must follow Apple's design rules). The default is a plain white button. */
+  AppleButton: ComponentType<{ signUp: boolean; disabled: boolean; onPress: () => void }>;
 }
 
 export interface AuthBrand {
@@ -46,6 +48,10 @@ export interface AuthStrings {
   signIn: string;
   createAccount: string;
   google: string;
+  googleSignUp: string;
+  apple: string;
+  appleSignUp: string;
+  or: string;
   haveAccount: string;
   newHere: string;
   forgot: string;
@@ -62,6 +68,10 @@ export const DEFAULT_STRINGS: AuthStrings = {
   signIn: 'Sign in',
   createAccount: 'Create account',
   google: 'Continue with Google',
+  googleSignUp: 'Sign up with Google',
+  apple: 'Continue with Apple',
+  appleSignUp: 'Sign up with Apple',
+  or: 'or',
   haveAccount: 'Have an account? Sign in',
   newHere: 'New here? Create an account',
   forgot: 'Forgot password?',

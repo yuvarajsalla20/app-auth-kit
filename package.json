@@ -1,6 +1,6 @@
 {
   "name": "app-auth-kit",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Reusable Firebase sign-in for React Native / Expo apps: themeable screen, auth functions, sign-in state hook, password reset and change, account deletion.",
   "main": "src/index.ts",
   "types": "src/index.ts",

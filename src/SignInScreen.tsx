@@ -137,9 +137,27 @@ export function SignInScreen({
             {busy ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.primaryText}>{signingUp ? t.createAccount : t.signIn}</Text>}
           </Pressable>
 
+          {(kit.apple || kit.google) && (
+            <View style={styles.or}>
+              <View style={styles.rule} />
+              <Text style={styles.muted}>{t.or}</Text>
+              <View style={styles.rule} />
+            </View>
+          )}
+
+          {kit.apple &&
+            (components?.AppleButton ? (
+              <components.AppleButton signUp={signingUp} disabled={busy} onPress={() => run(kit.signInApple)} />
+            ) : (
+              <Pressable onPress={() => run(kit.signInApple)} disabled={busy} accessibilityRole="button" style={styles.apple}>
+                <Text style={styles.appleText}>{`\uF8FF  ${signingUp ? t.appleSignUp : t.apple}`}</Text>
+              </Pressable>
+            ))}
+
           {kit.google && (
-            <Pressable onPress={() => run(kit.signInGoogle)} disabled={busy} accessibilityRole="button" style={styles.secondary}>
-              <Text style={styles.secondaryText}>{t.google}</Text>
+            <Pressable onPress={() => run(kit.signInGoogle)} disabled={busy} accessibilityRole="button" style={[styles.secondary, styles.row]}>
+              <Text style={styles.googleMark}>G</Text>
+              <Text style={styles.secondaryText}>{signingUp ? t.googleSignUp : t.google}</Text>
             </Pressable>
           )}
         </Reveal>
@@ -179,7 +197,13 @@ const makeStyles = (c: AuthTheme) =>
     good: { color: c.accent },
     primary: { backgroundColor: c.text, borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 4 },
     primaryText: { color: c.bg, fontSize: 16, fontWeight: '500' },
-    secondary: { borderColor: c.border, borderWidth: 1, borderRadius: 14, paddingVertical: 15, alignItems: 'center' },
+    secondary: { borderColor: c.border, borderWidth: 1, borderRadius: 14, height: 52, alignItems: 'center', justifyContent: 'center' },
+    row: { flexDirection: 'row', gap: 10 },
+    or: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 4 },
+    rule: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: c.border },
+    apple: { backgroundColor: '#FFFFFF', borderRadius: 14, height: 52, alignItems: 'center', justifyContent: 'center' },
+    appleText: { color: '#000000', fontSize: 16, fontWeight: '600' },
+    googleMark: { color: '#4285F4', fontSize: 20, fontWeight: '700' },
     secondaryText: { color: c.text, fontSize: 16 },
     disabled: { opacity: 0.4 },
     links: { marginTop: 28, gap: 16, alignItems: 'center' },
