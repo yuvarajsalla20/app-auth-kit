@@ -1,3 +1,7 @@
+import { FALLBACK_MESSAGE, NO_CONNECTION_MESSAGE } from 'app-core-kit';
+
+export { FALLBACK_MESSAGE };
+
 /** Plain-language text for the Firebase errors people actually meet. An empty string means "say nothing". */
 export const DEFAULT_MESSAGES: Record<string, string> = {
   'auth/invalid-email': 'That email address does not look right.',
@@ -8,10 +12,10 @@ export const DEFAULT_MESSAGES: Record<string, string> = {
   'auth/email-already-in-use': 'An account with this email already exists. Try signing in.',
   'auth/requires-recent-login': 'For safety, sign out, sign in again, then retry.',
   'auth/too-many-requests': 'Too many attempts. Wait a minute and try again.',
-  'auth/network-request-failed': 'No connection. Check your internet and try again.',
+  'auth/network-request-failed': NO_CONNECTION_MESSAGE,
   // Database (Firestore) errors that can surface while erasing an account.
-  unavailable: 'No connection. Check your internet and try again.',
-  'deadline-exceeded': 'No connection. Check your internet and try again.',
+  unavailable: NO_CONNECTION_MESSAGE,
+  'deadline-exceeded': NO_CONNECTION_MESSAGE,
   'auth/delete-timeout': 'Deleting is taking too long and may still finish. Check your connection, then try again.',
   'auth/reset-cooldown': 'We just sent a link. Wait a minute before asking for another.',
   'auth/popup-closed-by-user': '',
@@ -23,4 +27,3 @@ export const DEFAULT_MESSAGES: Record<string, string> = {
   'auth/api-key-not-valid.-please-pass-a-valid-api-key.': 'The app is not set up correctly (API key). Please contact support.',
 };
 
-export const FALLBACK_MESSAGE = 'Something went wrong. Please try again.';

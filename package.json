@@ -1,6 +1,6 @@
 {
   "name": "app-auth-kit",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Reusable Firebase sign-in for React Native / Expo apps: themeable screen, auth functions, sign-in state hook, password reset and change, account deletion.",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -10,6 +10,7 @@
   "license": "MIT",
   "author": "Yuvaraj Salla",
   "peerDependencies": {
+    "app-core-kit": ">=1.3.0",
     "firebase": ">=11",
     "react": ">=18",
     "react-native": ">=0.74",

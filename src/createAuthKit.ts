@@ -17,6 +17,7 @@ import {
   type AuthCredential,
   type User,
 } from 'firebase/auth';
+import { withTimeout } from 'app-core-kit';
 import { useEffect, useState } from 'react';
 import { DEFAULT_MESSAGES, FALLBACK_MESSAGE } from './messages';
 
@@ -194,9 +195,8 @@ export const createAuthKit = (options: AuthKitOptions) => {
         await reauthenticateWithPopup(user, new GoogleAuthProvider());
       }
       // Without a signal the erase would wait forever, so give up and let them retry.
-      await new Promise<void>((resolve, reject) => {
-        const timer = setTimeout(() => reject(Object.assign(new Error('timeout'), { code: 'auth/delete-timeout' })), deleteTimeoutMs);
-        eraseData().then(resolve, reject).finally(() => clearTimeout(timer));
+      await withTimeout(eraseData(), deleteTimeoutMs, 'timeout').catch((e: Error) => {
+        throw e.message === 'timeout' ? Object.assign(e, { code: 'auth/delete-timeout' }) : e;
       });
       // Apple requires the app to revoke its token when a Sign in with Apple account is deleted.
       // A failed revoke must not leave the person with an undeletable account, so it is reported and the deletion goes on.
