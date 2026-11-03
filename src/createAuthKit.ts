@@ -123,7 +123,8 @@ export const createAuthKit = (options: AuthKitOptions) => {
   /** Turns an error into a sentence a person can act on. Empty string means "say nothing". */
   const message = (error: unknown): string => {
     const code = (error as { code?: string })?.code ?? '';
-    return code in messages ? messages[code] : FALLBACK_MESSAGE;
+    // An unknown error shows its code in brackets, so a screenshot is enough to tell what failed.
+    return code in messages ? messages[code] : code ? `${FALLBACK_MESSAGE} (${code})` : FALLBACK_MESSAGE;
   };
 
   return {

@@ -16,6 +16,7 @@ export const DEFAULT_MESSAGES: Record<string, string> = {
   'auth/reset-cooldown': 'We just sent a link. Wait a minute before asking for another.',
   'auth/popup-closed-by-user': '',
   'auth/cancelled': '',
+  'auth/operation-not-allowed': 'This sign-in method is not switched on yet. Please contact support.',
   'auth/account-exists-with-different-credential': 'This email already has an account with another sign-in method. Use that one.',
   'auth/cancelled-popup-request': '',
   'auth/api-key-not-valid.-please-pass-a-valid-api-key.': 'The app is not set up correctly (API key). Please contact support.',
