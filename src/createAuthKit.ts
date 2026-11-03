@@ -51,6 +51,8 @@ export interface AuthKitOptions {
   minPassword?: number;
   /** Longest nickname kept. */
   maxNickname?: number;
+  /** Called with a place name and the error when something fails quietly (for example, Apple's token revoke), so the app can report it. */
+  onError?: (where: string, error: unknown) => void;
   /** Extra or replacement error texts, by Firebase error code. */
   messages?: Record<string, string>;
   /** How long deleting an account may take before it gives up (ms). */
@@ -118,6 +120,9 @@ export const createAuthKit = (options: AuthKitOptions) => {
   };
   const hasProvider = (id: string): boolean => !!options.auth?.currentUser?.providerData.some((p) => p.providerId === id);
 
+  // Sign in with Apple wins when it is linked, even if the account also has a password: that is the only way to get the code Apple needs to revoke.
+  const usesApple = (): boolean => apple && hasProvider('apple.com');
+
   const hasPassword = (): boolean => !!options.auth?.currentUser?.providerData.some((p) => p.providerId === 'password');
 
   /** Turns an error into a sentence a person can act on. Empty string means "say nothing". */
@@ -135,6 +140,8 @@ export const createAuthKit = (options: AuthKitOptions) => {
     message,
     takeNickname,
     hasPassword,
+    /** True when deleting the account needs the password typed in (false when Apple or Google confirms instead). */
+    confirmsWithPassword: (): boolean => hasPassword() && !usesApple(),
 
     signInEmail: (email: string, password: string) =>
       attempt(() => signInWithEmailAndPassword(requireAuth(), email.trim(), password)),
@@ -175,12 +182,12 @@ export const createAuthKit = (options: AuthKitOptions) => {
       if (!user) throw new Error('Sign in first.');
       // Prove it is really them the same way they signed in. Apple also hands back a code that lets us revoke its access below.
       let appleCode: string | null | undefined;
-      if (hasPassword() && user.email) {
-        await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
-      } else if (apple && hasProvider('apple.com')) {
+      if (usesApple()) {
         const { credential, code } = await appleCredential();
         await reauthenticateWithCredential(user, credential);
         appleCode = code;
+      } else if (hasPassword() && user.email) {
+        await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
       } else if (native.google) {
         await reauthenticateWithCredential(user, await googleCredential());
       } else {
@@ -192,7 +199,8 @@ export const createAuthKit = (options: AuthKitOptions) => {
         eraseData().then(resolve, reject).finally(() => clearTimeout(timer));
       });
       // Apple requires the app to revoke its token when a Sign in with Apple account is deleted.
-      if (appleCode) await revokeAccessToken(requireAuth(), appleCode).catch(() => undefined);
+      // A failed revoke must not leave the person with an undeletable account, so it is reported and the deletion goes on.
+      if (appleCode) await revokeAccessToken(requireAuth(), appleCode).catch((e) => options.onError?.('apple-revoke', e));
       await deleteUser(user);
     },
 

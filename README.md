@@ -74,5 +74,7 @@ createAuthKit({
 });
 ```
 
+`onError(where, error)` receives quiet failures such as a failed Apple token revoke. `confirmsWithPassword()` says whether delete-account needs the password typed (false when Apple confirms).
+
 Pass `components={{ AppleButton }}` to use Apple's own button (recommended for App Store review).
 Firebase console: enable the Apple and Google providers, and keep "Link accounts that use the same email" on.
