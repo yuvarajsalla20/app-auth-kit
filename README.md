@@ -38,6 +38,8 @@ import { SignInScreen } from 'app-auth-kit';
 // Anywhere
 const auth = authKit.useAuth(isFirebaseConfigured);   // { status: 'loading' | 'out' | 'in', user }
 await authKit.sendPasswordChange();                    // "Change password": emails a link to the signed-in address
+await authKit.changePassword(current, next);            // "Change password" on a page: confirms the current password, then sets the new one
+                                                        // with app-account-kit: password={{ onChange: authKit.changePassword, minLength: authKit.minPassword }}
 await authKit.deleteAccount(password, async () => { /* erase this app's own data */ });
 const nickname = authKit.takeNickname();               // after sign-up, save it with the new profile
 ```

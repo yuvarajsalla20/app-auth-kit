@@ -10,6 +10,8 @@ export const DEFAULT_MESSAGES: Record<string, string> = {
   'auth/wrong-password': 'Email or password is not correct.',
   'auth/user-not-found': 'Email or password is not correct.',
   'auth/email-already-in-use': 'An account with this email already exists. Try signing in.',
+  'auth/wrong-current-password': 'Your current password is not correct.',
+  'auth/no-password': 'This account signs in without a password, so there is none to change.',
   'auth/requires-recent-login': 'For safety, sign out, sign in again, then retry.',
   'auth/too-many-requests': 'Too many attempts. Wait a minute and try again.',
   'auth/network-request-failed': NO_CONNECTION_MESSAGE,

@@ -13,6 +13,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut as firebaseSignOut,
+  updatePassword,
   type Auth,
   type AuthCredential,
   type User,
@@ -167,6 +168,23 @@ export const createAuthKit = (options: AuthKitOptions) => {
       const email = requireAuth().currentUser?.email;
       if (!email) throw Object.assign(new Error('No email on this account.'), { code: 'auth/invalid-email' });
       return sendReset(email);
+    },
+
+    /**
+     * Changes the signed-in person's password: confirms the current one first (Firebase refuses a change after an old
+     * sign-in), then sets the new one. A wrong current password says so plainly instead of "Email or password is not correct".
+     */
+    changePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
+      const user = requireAuth().currentUser;
+      if (!user?.email || !hasPassword()) throw Object.assign(new Error('No password on this account.'), { code: 'auth/no-password' });
+      try {
+        await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, currentPassword));
+      } catch (e) {
+        const code = (e as { code?: string })?.code;
+        if (code === 'auth/invalid-credential' || code === 'auth/wrong-password') throw Object.assign(new Error('Wrong current password.'), { code: 'auth/wrong-current-password' });
+        throw e;
+      }
+      await updatePassword(user, newPassword);
     },
 
     signOut: () => {
