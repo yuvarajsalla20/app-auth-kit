@@ -68,6 +68,7 @@ export function SignInScreen({
   const submit = () =>
     run(() => (signingUp ? kit.signUpEmail(email, password, askNickname ? nick : '') : kit.signInEmail(email, password)));
 
+  const showForgot = forgotPassword && !signingUp;
   const forgot = () =>
     email.includes('@') ? run(() => kit.sendPasswordReset(email), t.resetSent) : setNote({ text: t.forgotNeedsEmail });
 
@@ -166,15 +167,20 @@ export function SignInScreen({
           <Pressable onPress={() => { setMode(signingUp ? 'signin' : 'signup'); setNote(null); }} accessibilityRole="button" hitSlop={8}>
             <Text style={styles.link}>{signingUp ? t.haveAccount : t.newHere}</Text>
           </Pressable>
-          {forgotPassword && !signingUp && (
-            <Pressable onPress={forgot} accessibilityRole="button" hitSlop={8}>
-              <Text style={styles.muted}>{t.forgot}</Text>
-            </Pressable>
-          )}
-          {onOpenPrivacy && (
-            <Pressable onPress={onOpenPrivacy} accessibilityRole="link" hitSlop={8}>
-              <Text style={styles.muted}>{t.privacy}</Text>
-            </Pressable>
+          {(showForgot || onOpenPrivacy) && (
+            <View style={styles.legal}>
+              {showForgot && (
+                <Pressable onPress={forgot} accessibilityRole="button" hitSlop={8}>
+                  <Text style={styles.muted}>{t.forgot}</Text>
+                </Pressable>
+              )}
+              {showForgot && onOpenPrivacy && <Text style={styles.pipe}>|</Text>}
+              {onOpenPrivacy && (
+                <Pressable onPress={onOpenPrivacy} accessibilityRole="link" hitSlop={8}>
+                  <Text style={styles.muted}>{t.privacy}</Text>
+                </Pressable>
+              )}
+            </View>
           )}
         </Reveal>
       </ScrollView>
@@ -209,4 +215,6 @@ const makeStyles = (c: AuthTheme) =>
     links: { marginTop: 28, gap: 16, alignItems: 'center' },
     link: { color: c.accent, fontSize: 14 },
     muted: { color: c.muted, fontSize: 13 },
+    legal: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 10 },
+    pipe: { color: c.muted, fontSize: 13, opacity: 0.6 },
   });
