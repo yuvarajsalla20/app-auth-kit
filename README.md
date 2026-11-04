@@ -48,9 +48,17 @@ const nickname = authKit.takeNickname();               // after sign-up, save it
 
 - Delete account re-authenticates first, runs **your** `eraseData` callback, then removes the login, and gives up after 30 s so it never hangs.
 - A failed sign-up never leaves its nickname behind for the next login; sign-out clears it.
-- Reset and change-password emails are limited to one per minute.
+- Reset and change-password emails are limited to one per minute per address, and an address with no account looks the same as one that has.
+- Passwords must meet `minPassword` at sign-up and when changed, and a changed password must differ from the old one.
+- Only one delete runs at a time; a retry after a timeout joins the first erase, so `eraseData` runs once and must be safe to run again.
+- `useAuth` reports signed out (never stuck loading) when Firebase is not configured or the listener fails.
+- A double tap on sign-up makes one account and keeps its nickname.
 - Wrong email, wrong password and unknown user all show the same message.
 - Every word on the screen can be reworded through `strings`.
+
+## Tests
+
+`npm install` then `npm test` (vitest, 37 tests) and `npm run typecheck`. The tests use stand-ins for `firebase/auth` and `app-core-kit` (`tests/stubs/`).
 
 ## Install
 

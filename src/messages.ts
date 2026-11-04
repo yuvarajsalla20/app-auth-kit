@@ -19,6 +19,8 @@ export const DEFAULT_MESSAGES: Record<string, string> = {
   unavailable: NO_CONNECTION_MESSAGE,
   'deadline-exceeded': NO_CONNECTION_MESSAGE,
   'auth/delete-timeout': 'Deleting is taking too long and may still finish. Check your connection, then try again.',
+  'auth/same-password': 'Choose a password different from your current one.',
+  'auth/delete-in-progress': 'Deleting is already in progress. Please wait.',
   'auth/reset-cooldown': 'We just sent a link. Wait a minute before asking for another.',
   'auth/popup-closed-by-user': '',
   'auth/cancelled': '',

@@ -1,67 +1,24 @@
 import {
   createUserWithEmailAndPassword,
-  deleteUser,
-  EmailAuthProvider,
   GoogleAuthProvider,
-  OAuthProvider,
-  onAuthStateChanged,
-  reauthenticateWithCredential,
-  reauthenticateWithPopup,
-  revokeAccessToken,
   sendPasswordResetEmail,
   signInWithCredential,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut as firebaseSignOut,
-  updatePassword,
   type Auth,
-  type AuthCredential,
-  type User,
+  type UserCredential,
 } from 'firebase/auth';
-import { withTimeout } from 'app-core-kit';
-import { useEffect, useState } from 'react';
+import { createDeleteAccount } from './deleteAccount';
+import { codeOf } from './errors';
 import { DEFAULT_MESSAGES, FALLBACK_MESSAGE } from './messages';
-
-export type AuthState = { status: 'loading' } | { status: 'out' } | { status: 'in'; user: User };
-
-/** What Apple hands back. `rawNonce` is the unhashed value whose SHA-256 was sent to Apple. */
-export interface AppleResult {
-  idToken: string;
-  rawNonce: string;
-  /** Needed to revoke Apple's access when the account is deleted. */
-  authorizationCode?: string | null;
-}
-
-/**
- * The phone's own sign-in sheets, supplied by the app so this package needs no native modules.
- * Each returns null when the person cancels, and throws on a real failure.
- */
-export interface NativeProviders {
-  /** Returns a Google ID token. */
-  google?: () => Promise<string | null>;
-  apple?: () => Promise<AppleResult | null>;
-}
-
-export interface AuthKitOptions {
-  /** The app's own Firebase Auth instance, or null while the app has no Firebase settings. */
-  auth: Auth | null;
-  /** Show "Continue with Google" using a web popup (web only). On phones pass `native.google` instead. */
-  google?: boolean;
-  /** Phone sign-in sheets for Apple and Google. A provider left out is hidden. */
-  native?: NativeProviders;
-  /** Shortest password accepted at sign-up. Firebase itself requires 6. */
-  minPassword?: number;
-  /** Longest nickname kept. */
-  maxNickname?: number;
-  /** Called with a place name and the error when something fails quietly (for example, Apple's token revoke), so the app can report it. */
-  onError?: (where: string, error: unknown) => void;
-  /** Extra or replacement error texts, by Firebase error code. */
-  messages?: Record<string, string>;
-  /** How long deleting an account may take before it gives up (ms). */
-  deleteTimeoutMs?: number;
-  /** Shortest gap between two reset or change-password emails (ms). Stops accidental or abusive repeats. */
-  resetCooldownMs?: number;
-}
+import { createNickname } from './nickname';
+import { checkNewPassword } from './passwordRules';
+import { createPasswordActions } from './passwordActions';
+import { createProviders } from './providers';
+import { createResetCooldown } from './resetCooldown';
+import type { AuthKitOptions } from './types';
+import { createUseAuth } from './useAuth';
 
 /**
  * Everything about signing in, for one app: pass it your Firebase Auth and get the actions,
@@ -78,60 +35,19 @@ export const createAuthKit = (options: AuthKitOptions) => {
     return options.auth;
   };
 
-  // A nickname typed at sign-up, held until the app has created the new profile and takes it.
-  let pendingNickname: string | null = null;
-  const forgetNickname = () => {
-    pendingNickname = null;
-  };
-  /** Returns the nickname typed at sign-up (once) so the app can save it with the new profile. */
-  const takeNickname = (): string | null => {
-    const name = pendingNickname;
-    pendingNickname = null;
-    return name;
-  };
+  const nickname = createNickname(maxNickname);
+  const providers = createProviders(options.auth, native);
+  const sendReset = createResetCooldown(resetCooldownMs, (email) => sendPasswordResetEmail(requireAuth(), email));
+  const deleteAccount = createDeleteAccount({ requireAuth, providers, native, timeoutMs: deleteTimeoutMs, onError: options.onError });
 
-  /** Runs a sign-in action; a failure never leaves its nickname behind for the next login. */
-  const attempt = async <T>(action: () => Promise<T>): Promise<T> => {
-    try {
-      return await action();
-    } catch (e) {
-      forgetNickname();
-      throw e;
-    }
-  };
-
-  // One reset or change-password email per cooldown, so a double tap or a script cannot flood an inbox.
-  let lastResetAt = 0;
-  const sendReset = async (email: string): Promise<void> => {
-    if (Date.now() - lastResetAt < resetCooldownMs) throw Object.assign(new Error('Wait before asking again.'), { code: 'auth/reset-cooldown' });
-    await sendPasswordResetEmail(requireAuth(), email);
-    lastResetAt = Date.now();
-  };
-
-  const cancelled = () => Object.assign(new Error('cancelled'), { code: 'auth/cancelled' });
-  const googleCredential = async (): Promise<AuthCredential> => {
-    const idToken = await native.google!();
-    if (!idToken) throw cancelled();
-    return GoogleAuthProvider.credential(idToken);
-  };
-  const appleCredential = async (): Promise<{ credential: AuthCredential; code?: string | null }> => {
-    const result = await native.apple!();
-    if (!result) throw cancelled();
-    const credential = new OAuthProvider('apple.com').credential({ idToken: result.idToken, rawNonce: result.rawNonce });
-    return { credential, code: result.authorizationCode };
-  };
-  const hasProvider = (id: string): boolean => !!options.auth?.currentUser?.providerData.some((p) => p.providerId === id);
-
-  // Sign in with Apple wins when it is linked, even if the account also has a password: that is the only way to get the code Apple needs to revoke.
-  const usesApple = (): boolean => apple && hasProvider('apple.com');
-
-  const hasPassword = (): boolean => !!options.auth?.currentUser?.providerData.some((p) => p.providerId === 'password');
+  // A second sign-up tap while the first is running joins it, so one account is made and one nickname kept.
+  let signingUp: Promise<UserCredential> | null = null;
 
   /** Turns an error into a sentence a person can act on. Empty string means "say nothing". */
   const message = (error: unknown): string => {
-    const code = (error as { code?: string })?.code ?? '';
+    const code = codeOf(error);
     // An unknown error shows its code in brackets, so a screenshot is enough to tell what failed.
-    return code in messages ? messages[code] : code ? `${FALLBACK_MESSAGE} (${code})` : FALLBACK_MESSAGE;
+    return Object.prototype.hasOwnProperty.call(messages, code) ? messages[code] : code ? `${FALLBACK_MESSAGE} (${code})` : FALLBACK_MESSAGE;
   };
 
   return {
@@ -140,99 +56,46 @@ export const createAuthKit = (options: AuthKitOptions) => {
     minPassword,
     maxNickname,
     message,
-    takeNickname,
-    hasPassword,
+    takeNickname: nickname.take,
+    hasPassword: providers.hasPassword,
     /** True when deleting the account needs the password typed in (false when Apple or Google confirms instead). */
-    confirmsWithPassword: (): boolean => hasPassword() && !usesApple(),
+    confirmsWithPassword: (): boolean => providers.hasPassword() && !providers.usesApple(),
 
-    signInEmail: (email: string, password: string) =>
-      attempt(() => signInWithEmailAndPassword(requireAuth(), email.trim(), password)),
+    signInEmail: (email: string, password: string) => nickname.run(() => signInWithEmailAndPassword(requireAuth(), email.trim(), password)),
 
     /** Creates the account. The nickname (optional) is held for `takeNickname`. */
-    signUpEmail: (email: string, password: string, nickname = '') => {
-      pendingNickname = nickname.trim().slice(0, maxNickname) || null;
-      return attempt(() => createUserWithEmailAndPassword(requireAuth(), email.trim(), password));
+    signUpEmail: (email: string, password: string, typedNickname = ''): Promise<UserCredential> => {
+      signingUp ??= nickname
+        .run(async () => {
+          checkNewPassword(minPassword, password);
+          return createUserWithEmailAndPassword(requireAuth(), email.trim(), password);
+        }, typedNickname)
+        .finally(() => {
+          signingUp = null;
+        });
+      return signingUp;
     },
 
     signInGoogle: () =>
-      attempt(async () => (native.google ? signInWithCredential(requireAuth(), await googleCredential()) : signInWithPopup(requireAuth(), new GoogleAuthProvider()))),
+      nickname.run(async () => (native.google ? signInWithCredential(requireAuth(), await providers.googleCredential()) : signInWithPopup(requireAuth(), new GoogleAuthProvider()))),
 
     /** Signs in (or creates the account) with Apple's sheet. Apple may hide the email address; that is fine. */
-    signInApple: () => attempt(async () => signInWithCredential(requireAuth(), (await appleCredential()).credential)),
+    signInApple: () => nickname.run(async () => signInWithCredential(requireAuth(), (await providers.appleCredential()).credential)),
 
-    /** Emails a reset link to an address (the "Forgot password" case). */
+    /** Emails a reset link to an address (the "Forgot password" case). An address with no account looks the same as one that has. */
     sendPasswordReset: (email: string) => sendReset(email.trim()),
 
-    /** Emails a reset link to the signed-in person's own address (the "Change password" case). */
-    sendPasswordChange: () => {
-      const email = requireAuth().currentUser?.email;
-      if (!email) throw Object.assign(new Error('No email on this account.'), { code: 'auth/invalid-email' });
-      return sendReset(email);
-    },
-
-    /**
-     * Changes the signed-in person's password: confirms the current one first (Firebase refuses a change after an old
-     * sign-in), then sets the new one. A wrong current password says so plainly instead of "Email or password is not correct".
-     */
-    changePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
-      const user = requireAuth().currentUser;
-      if (!user?.email || !hasPassword()) throw Object.assign(new Error('No password on this account.'), { code: 'auth/no-password' });
-      try {
-        await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, currentPassword));
-      } catch (e) {
-        const code = (e as { code?: string })?.code;
-        if (code === 'auth/invalid-credential' || code === 'auth/wrong-password') throw Object.assign(new Error('Wrong current password.'), { code: 'auth/wrong-current-password' });
-        throw e;
-      }
-      await updatePassword(user, newPassword);
-    },
+    ...createPasswordActions({ requireAuth, providers, minPassword, sendReset }),
 
     signOut: () => {
-      forgetNickname();
+      nickname.forget();
       return firebaseSignOut(requireAuth());
     },
 
-    /**
-     * Deletes the account for good: confirms it is really them, runs `eraseData` (the app deletes its own
-     * data there), then removes the login. Apple requires an in-app way to do this.
-     */
-    deleteAccount: async (password: string, eraseData: () => Promise<void>): Promise<void> => {
-      const user = requireAuth().currentUser;
-      if (!user) throw new Error('Sign in first.');
-      // Prove it is really them the same way they signed in. Apple also hands back a code that lets us revoke its access below.
-      let appleCode: string | null | undefined;
-      if (usesApple()) {
-        const { credential, code } = await appleCredential();
-        await reauthenticateWithCredential(user, credential);
-        appleCode = code;
-      } else if (hasPassword() && user.email) {
-        await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
-      } else if (native.google) {
-        await reauthenticateWithCredential(user, await googleCredential());
-      } else {
-        await reauthenticateWithPopup(user, new GoogleAuthProvider());
-      }
-      // Without a signal the erase would wait forever, so give up and let them retry.
-      await withTimeout(eraseData(), deleteTimeoutMs, 'timeout').catch((e: Error) => {
-        throw e.message === 'timeout' ? Object.assign(e, { code: 'auth/delete-timeout' }) : e;
-      });
-      // Apple requires the app to revoke its token when a Sign in with Apple account is deleted.
-      // A failed revoke must not leave the person with an undeletable account, so it is reported and the deletion goes on.
-      if (appleCode) await revokeAccessToken(requireAuth(), appleCode).catch((e) => options.onError?.('apple-revoke', e));
-      await deleteUser(user);
-    },
+    /** See `deleteAccount.ts`. */
+    deleteAccount,
 
-
-    /** Who is signed in. `loading` lasts only until Firebase has restored the saved sign-in. */
-    useAuth: (enabled = true): AuthState => {
-      const [state, setState] = useState<AuthState>({ status: 'loading' });
-      useEffect(() => {
-        if (!enabled) return;
-        return onAuthStateChanged(requireAuth(), (user) => setState(user ? { status: 'in', user } : { status: 'out' }));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [enabled]);
-      return state;
-    },
+    useAuth: createUseAuth(options.auth, options.onError),
   };
 };
 
