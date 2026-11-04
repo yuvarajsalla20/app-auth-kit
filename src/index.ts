@@ -1,3 +1,4 @@
+export { KIT_NAME, KIT_VERSION } from './kit';
 export { createAuthKit } from './createAuthKit';
 export type { AppleResult, AuthKit, AuthKitOptions, AuthState, NativeProviders } from './createAuthKit';
 export { SignInScreen } from './SignInScreen';

@@ -78,3 +78,5 @@ createAuthKit({
 
 Pass `components={{ AppleButton }}` to use Apple's own button (recommended for App Store review).
 Firebase console: enable the Apple and Google providers, and keep "Link accounts that use the same email" on.
+
+Version: `import { KIT_VERSION } from 'app-auth-kit'` gives the installed version. Pass it, with the other kits' versions, to the account kit's `kitsLine` so the app can show and report every kit version in one line.
