@@ -1,5 +1,6 @@
-import { deleteUser, EmailAuthProvider, GoogleAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup, revokeAccessToken, type Auth } from 'firebase/auth';
+import { deleteUser, GoogleAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup, revokeAccessToken, type Auth } from 'firebase/auth';
 import { withTimeout } from 'app-core-kit';
+import { confirmPassword } from './confirmPassword';
 import { coded } from './errors';
 import type { Providers } from './providers';
 import type { NativeProviders } from './types';
@@ -29,7 +30,7 @@ export const createDeleteAccount = ({ requireAuth, providers, native, timeoutMs,
       return code;
     }
     if (providers.hasPassword() && user.email) {
-      await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
+      await confirmPassword(user, user.email, password);
     } else if (providers.hasProvider('google.com')) {
       if (native.google) await reauthenticateWithCredential(user, await providers.googleCredential());
       else await reauthenticateWithPopup(user, new GoogleAuthProvider());

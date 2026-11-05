@@ -27,7 +27,7 @@ import { SignInScreen } from 'app-auth-kit';
 <SignInScreen
   kit={authKit}
   brand={{ name: 'MyApp', tagline: 'Say something nice.', logo: <Logo />, backdrop: <Stars /> }}
-  theme={{ bg: '#000', accent: '#5B8CFF' }}   // only what differs from the defaults
+  theme={{ bg: '#000', accent: '#5B8CFF' }}   // only what differs from the defaults (an inline object is fine: it is compared by value)
   components={{ Text, TextInput }}             // your font-aware components (optional)
   nickname                                      // ask for a nickname at sign-up (optional)
   onOpenPrivacy={() => Linking.openURL(PRIVACY_URL)}
@@ -62,21 +62,31 @@ const nickname = authKit.takeNickname();               // after sign-up, save it
 src/
   createAuthKit.ts     puts the pieces below together and returns the kit
   types.ts             AuthKitOptions, AuthState, NativeProviders, AppleResult
-  nickname.ts          the nickname typed at sign-up (kept once, forgotten on failure or sign-out)
+  nickname.ts          the nickname typed at sign-up (kept once, cut by whole characters, forgotten on failure, sign-out or the next ordinary sign-in)
   resetCooldown.ts     one reset email per address per minute
   passwordRules.ts     the password rules shared by sign-up and change password
+  confirmPassword.ts   signs the person in again with their password (shared by change password and delete account)
   passwordActions.ts   change password (confirm current, then set) and the emailed link
   providers.ts         which sign-in methods the person uses; the Apple and Google credentials
   deleteAccount.ts     re-confirm, erase the app's data once, revoke Apple, remove the login
   useAuth.ts           the sign-in state hook
   errors.ts  messages.ts   error codes and the plain-language texts
-  SignInScreen.tsx     the screen; useAuthForm.ts, AuthFields.tsx, SocialButtons.tsx, AuthLinks.tsx, signInStyles.ts are its parts
+  SignInScreen.tsx     the screen; useAuthForm.ts, AuthFields.tsx, SocialButtons.tsx, AuthLinks.tsx, signInStyles.ts, useStable.ts, Reveal.tsx are its parts
 tests/                 vitest, with stand-ins for firebase/auth and app-core-kit in tests/stubs/
 ```
 
 ## Tests
 
-`npm install` then `npm test` (vitest, 37 tests) and `npm run typecheck`. The tests use stand-ins for `firebase/auth` and `app-core-kit` (`tests/stubs/`).
+`npm install` (an `.npmrc` keeps npm from looking for app-core-kit on the registry) then `npm test` (vitest, 57 tests, including the real sign-in screen rendered with a small react-native stand-in) and `npm run typecheck`. The tests use stand-ins for `firebase/auth` and `app-core-kit` (`tests/stubs/`).
+
+## Upgrading from 1.8 to 1.9
+
+- A nickname nobody took is dropped by the next ordinary sign-in, and a nickname is cut by whole characters (an emoji is never split).
+- Delete account with a wrong password now says `auth/wrong-current-password` ("Your current password is not correct.") like Change password. Both use `confirmPassword.ts`.
+- `strings.resetSent` now reads "If that address has an account, a reset email is on its way..." because an address with no account looks the same as one that has. Reword it through `strings` if you prefer.
+- The sign-in screen: Next on the keyboard moves from email to password (and to the nickname when signing up); the main button has a spoken name and a busy state; the form lifts with the keyboard; the entrance animation is shorter, stops with the screen and is skipped when the phone's Reduce Motion is on; an inline `theme` or `strings` object no longer rebuilds the styles. If you pass your own `components.TextInput`, make it `forwardRef` to get the Next-key hand-off; a plain component still works without it.
+- The Apple access is revoked before the login is deleted (as before): if the last step fails, `onError('delete-user', error)` is called and the person has to confirm with Apple again on retry. This order was not changed because it could not be tried against real Firebase here.
+- `"sideEffects": false`, a version test, and an `.npmrc` for installing this repo on its own.
 
 ## Upgrading from 1.7 to 1.8
 
@@ -91,7 +101,7 @@ tests/                 vitest, with stand-ins for firebase/auth and app-core-kit
 ## Install
 
 `"app-auth-kit": "git+https://github.com/yuvarajsalla20/app-auth-kit.git#<full commit SHA>"` in `package.json`. Pin a full commit SHA, not a tag, so a build always gets exactly the code you tested.
-Peer dependencies: `firebase`, `react`, `react-native`, `react-native-safe-area-context`.
+Peer dependencies: `app-core-kit` (install it from GitHub too, pinned the same way), `firebase`, `react`, `react-native`, `react-native-safe-area-context`.
 
 ## Apple and Google on phones (v1.2)
 
@@ -116,4 +126,4 @@ Firebase console: enable the Apple and Google providers, and keep "Link accounts
 Version: `import { KIT_VERSION } from 'app-auth-kit'` gives the installed version. Pass it, with the other kits' versions, to the account kit's `kitsLine` so the app can show and report every kit version in one line.
 
 ---
-Version 1.8.0 - 2026-11-04 4:10 PM CT
+Version 1.9.0 - 2026-11-04 8:22 PM CT

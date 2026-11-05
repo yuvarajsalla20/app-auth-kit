@@ -58,4 +58,24 @@ describe('sign-up through the kit', () => {
     await kit.signOut();
     expect(kit.takeNickname()).toBeNull();
   });
+  it('is cut by whole characters, never inside an emoji', async () => {
+    const n = createNickname(3);
+    await n.run(async () => 1, 'ab😀cd');
+    expect(n.take()).toBe('ab😀');
+  });
+  it('a nickname nobody took is dropped by the next ordinary sign-in', async () => {
+    const n = createNickname(20);
+    await n.run(async () => 1, 'Nova');
+    await n.run(async () => 1);
+    expect(n.take()).toBeNull();
+  });
+  it('an ordinary sign-in never drops the nickname of a sign-up that is still running', async () => {
+    const n = createNickname(20);
+    const gate = deferred();
+    const signUp = n.run(() => gate.promise, 'Nova');
+    await n.run(async () => 1);
+    gate.resolve();
+    await signUp;
+    expect(n.take()).toBe('Nova');
+  });
 });

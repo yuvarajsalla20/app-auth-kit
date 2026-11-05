@@ -76,6 +76,6 @@ export const DEFAULT_STRINGS: AuthStrings = {
   newHere: 'New here? Create an account',
   forgot: 'Forgot password?',
   forgotNeedsEmail: 'Enter your email above first, then tap Forgot password.',
-  resetSent: 'Password reset email sent. Check your inbox, and your spam folder too.',
+  resetSent: 'If that address has an account, a reset email is on its way. Check your inbox, and your spam folder too.',
   privacy: 'Privacy policy',
 };

@@ -14,6 +14,13 @@ describe('deleteAccount (password account)', () => {
     expect(erase).not.toHaveBeenCalled();
     expect(fns.deleteUser).not.toHaveBeenCalled();
   });
+  it('a wrong password says so in words, not "email or password"', async () => {
+    fns.reauthenticateWithCredential.mockRejectedValue(fail('auth/invalid-credential'));
+    const k = make();
+    const e = await k.deleteAccount('bad', vi.fn()).catch((x) => x);
+    expect(e).toMatchObject({ code: 'auth/wrong-current-password' });
+    expect(k.message(e)).toBe('Your current password is not correct.');
+  });
   it('erases the data first and the login last', async () => {
     const order: string[] = [];
     fns.deleteUser.mockImplementation(async () => { order.push('login'); });
@@ -30,6 +37,7 @@ describe('deleteAccount (password account)', () => {
     const k = make();
     await expect(k.deleteAccount('pw', erase)).rejects.toMatchObject({ code: 'auth/delete-timeout' });
     const retry = k.deleteAccount('pw', erase);
+    await new Promise((r) => setTimeout(r, 10)); // let the retry reach the erase while the first one is still running
     gate.resolve();
     await retry;
     expect(erase).toHaveBeenCalledTimes(1);
