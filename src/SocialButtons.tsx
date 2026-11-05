@@ -1,6 +1,7 @@
-import { Pressable, View, type Text as RNText } from 'react-native';
+import { Image, Pressable, View, type Text as RNText } from 'react-native';
 import type { ComponentProps, ComponentType } from 'react';
 import type { AuthKit } from './createAuthKit';
+import { GOOGLE_MARK } from './googleMark';
 import type { AuthStyles } from './signInStyles';
 import type { AuthComponents, AuthStrings } from './theme';
 import type { AuthForm } from './useAuthForm';
@@ -35,7 +36,7 @@ export function SocialButtons({ form, kit, t, styles, Text, AppleButton }: Props
         ))}
       {kit.google && (
         <Pressable onPress={form.signInGoogle} disabled={busy} accessibilityRole="button" style={[styles.secondary, styles.row]}>
-          <Text style={styles.googleMark}>G</Text>
+          <Image source={{ uri: GOOGLE_MARK }} style={styles.googleMark} accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
           <Text style={styles.secondaryText}>{signingUp ? t.googleSignUp : t.google}</Text>
         </Pressable>
       )}

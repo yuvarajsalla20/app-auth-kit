@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { GOOGLE_MARK } from '../src/googleMark';
 import { SignInScreen } from '../src/SignInScreen';
 import { DEFAULT_STRINGS as S } from '../src/theme';
 import { motion } from './stubs/react-native';
@@ -153,5 +154,25 @@ describe('SignInScreen theme', () => {
     expect(h.first('ScrollView').parent!.props.style).toBe(styleBefore);
     h.rerender(make('#f00'));
     expect(h.first('ScrollView').parent!.props.style).not.toBe(styleBefore);
+  });
+});
+
+describe('the Google button', () => {
+  it('puts the four-colour Google logo in front of the words, hidden from the screen reader, and still signs in', async () => {
+    const kit = fakeKit({ google: true });
+    const h = screen(kit);
+    const button = h.text(S.google)!;
+    const logo = button.findAll((n) => n.type === 'Image')[0]!;
+    expect(logo.props.source.uri).toBe(GOOGLE_MARK);
+    expect(GOOGLE_MARK).toMatch(/^data:image\/png;base64,iVBOR/);
+    expect(logo.props.importantForAccessibility).toBe('no-hide-descendants');
+    expect(logo.props.accessible).toBe(false);
+    expect(button.findAll((n) => n.type === 'Text').map((n) => n.props.children)).not.toContain('G');
+    expect(button.findAll((n) => n.type === 'Image' || n.type === 'Text').map((n) => n.type)).toEqual(['Image', 'Text']); // logo first, then the words
+    await press(button);
+    expect(kit.signInGoogle).toHaveBeenCalledTimes(1);
+  });
+  it('shows no logo when Google is off', () => {
+    expect(screen(fakeKit({ google: false })).root.root.findAll((n) => n.type === 'Image')).toHaveLength(0);
   });
 });

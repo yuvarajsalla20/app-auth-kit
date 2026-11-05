@@ -22,7 +22,7 @@ export const makeStyles = (c: AuthTheme) =>
     rule: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: c.border },
     apple: { backgroundColor: '#FFFFFF', borderRadius: 14, height: 52, alignItems: 'center', justifyContent: 'center' },
     appleText: { color: '#000000', fontSize: 16, fontWeight: '600' },
-    googleMark: { color: '#4285F4', fontSize: 20, fontWeight: '700' },
+    googleMark: { width: 20, height: 20 },
     secondaryText: { color: c.text, fontSize: 16 },
     disabled: { opacity: 0.4 },
     links: { marginTop: 28, gap: 16, alignItems: 'center' },

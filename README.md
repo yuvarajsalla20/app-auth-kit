@@ -71,13 +71,17 @@ src/
   deleteAccount.ts     re-confirm, erase the app's data once, revoke Apple, remove the login
   useAuth.ts           the sign-in state hook
   errors.ts  messages.ts   error codes and the plain-language texts
-  SignInScreen.tsx     the screen; useAuthForm.ts, AuthFields.tsx, SocialButtons.tsx, AuthLinks.tsx, signInStyles.ts, useStable.ts, Reveal.tsx are its parts
+  SignInScreen.tsx     the screen; useAuthForm.ts, AuthFields.tsx, SocialButtons.tsx, AuthLinks.tsx, signInStyles.ts, useStable.ts, Reveal.tsx, googleMark.ts (the Google logo) are its parts
 tests/                 vitest, with stand-ins for firebase/auth and app-core-kit in tests/stubs/
 ```
 
 ## Tests
 
 `npm install` (an `.npmrc` keeps npm from looking for app-core-kit on the registry) then `npm test` (vitest, 57 tests, including the real sign-in screen rendered with a small react-native stand-in) and `npm run typecheck`. The tests use stand-ins for `firebase/auth` and `app-core-kit` (`tests/stubs/`).
+
+## Upgrading from 1.9 to 1.10
+
+The "Continue with Google" button now shows the real four-colour Google logo in front of the words (it was a plain blue letter G). It is built into the kit as a small embedded image, so there is nothing to install and nothing to change in the app. The logo is hidden from VoiceOver; the button is still read as "Continue with Google".
 
 ## Upgrading from 1.8 to 1.9
 
@@ -126,4 +130,4 @@ Firebase console: enable the Apple and Google providers, and keep "Link accounts
 Version: `import { KIT_VERSION } from 'app-auth-kit'` gives the installed version. Pass it, with the other kits' versions, to the account kit's `kitsLine` so the app can show and report every kit version in one line.
 
 ---
-Version 1.9.0 - 2026-11-04 8:22 PM CT
+Version 1.10.0 - 2026-11-04 11:40 PM CT
