@@ -1,13 +1,13 @@
 import { useRef, useState, type ComponentProps, type ComponentType, type ElementRef, type RefObject } from 'react';
 import { TextInput as RNTextInput } from 'react-native';
-import type { AuthKit } from './createAuthKit';
+import type { ScreenKit } from './screenKit';
 import type { AuthStyles } from './signInStyles';
 import type { AuthStrings, AuthTheme } from './theme';
 import type { AuthForm } from './useAuthForm';
 
 interface Props {
   form: AuthForm;
-  kit: AuthKit;
+  kit: ScreenKit;
   t: AuthStrings;
   theme: AuthTheme;
   styles: AuthStyles;

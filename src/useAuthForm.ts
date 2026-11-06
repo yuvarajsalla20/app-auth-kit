@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
-import type { AuthKit } from './createAuthKit';
+import type { ScreenKit } from './screenKit';
 import type { AuthStrings } from './theme';
 
 type Mode = 'signin' | 'signup';
 
 /** The sign-in form's state and actions. Only one action runs at a time, even if the button is tapped twice in one frame. */
-export function useAuthForm(kit: AuthKit, t: AuthStrings, askNickname: boolean) {
+export function useAuthForm(kit: ScreenKit, t: AuthStrings, askNickname: boolean) {
   const [mode, setMode] = useState<Mode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

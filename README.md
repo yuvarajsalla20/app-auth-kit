@@ -1,6 +1,6 @@
 # app-auth-kit
 
-Reusable Firebase sign-in for React Native / Expo apps (iOS, Android, web).
+Reusable Firebase or Supabase sign-in for React Native / Expo apps (iOS, Android, web).
 Themeable screen + auth functions + sign-in state hook, with nothing specific to any one app.
 
 ## What you get
@@ -44,6 +44,51 @@ await authKit.deleteAccount(password, async () => { /* erase this app's own data
 const nickname = authKit.takeNickname();               // after sign-up, save it with the new profile
 ```
 
+## Supabase instead of Firebase (v1.11)
+
+Import from `app-auth-kit/supabase` and pass your Supabase client. You get the same kit: the same actions, rules, error texts and `SignInScreen`. That entry imports nothing from Firebase (a test walks its imports), and Firebase apps that import `app-auth-kit` work exactly as before.
+
+```ts
+// authKit.ts
+import { createClient } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createSupabaseAuthKit } from 'app-auth-kit/supabase';
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { storage: AsyncStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false } });
+export const authKit = createSupabaseAuthKit({
+  supabase,                                   // or null while unconfigured
+  native: { google: googleIdToken, apple: appleSheet },  // the same phone sheets as the Firebase kit
+  resetRedirectTo: 'myapp://reset-password',  // must be in Supabase > Authentication > URL Configuration
+  revokeApple: (code) => supabase.functions.invoke('revoke-apple', { body: { code } }).then(() => {}),
+});
+```
+
+```tsx
+import { SignInScreen } from 'app-auth-kit/supabase';
+<SignInScreen kit={authKit} brand={{ name: 'MyApp' }} />
+const auth = authKit.useAuth();              // { status: 'loading' | 'out' | 'in', user }  (a Supabase User)
+```
+
+What is different on Supabase:
+
+- **Delete account needs one database function**, because a phone cannot delete a Supabase login itself. By default the kit calls `delete_user`; run this once in the SQL editor (or pass your own `deleteUser`, for example an Edge Function):
+
+  ```sql
+  create or replace function public.delete_user() returns void
+  language sql security definer set search_path = '' as $$
+    delete from auth.users where id = auth.uid();
+  $$;
+  revoke execute on function public.delete_user() from public, anon;
+  grant execute on function public.delete_user() to authenticated;
+  ```
+
+  After it, the saved session on the phone is cleared (`signOut({ scope: 'local' })`).
+- **Apple revoke** needs Apple's client secret, so it runs on your server: pass `revokeApple(code)`. Without it the account is still deleted. A failed revoke calls `onError('apple-revoke', error)` and the delete goes on, like the Firebase kit.
+- **Email confirmation**: if the project asks people to confirm their email, sign-up has no session yet and rejects with `auth/check-email` ("Check your email and tap the link..."). Supabase answers the same way for an address that already has an account, so the screen cannot reveal who has one. The typed nickname is not carried to that later sign-in.
+- **Web Google** goes through Supabase's redirect (`oauthRedirectTo`). On the web, delete account with Google relies on the open session (Supabase has no popup re-check); phones confirm with Google's sheet.
+- Supabase error codes are turned into the same `auth/...` codes, so your `messages` overrides keep working. An unknown one shows as `supabase/<code>`.
+- Set `minPassword` to the minimum in Supabase > Authentication > Providers > Email.
+
 ## Rules it follows
 
 - Delete account re-authenticates first, runs **your** `eraseData` callback, then removes the login, and gives up after 30 s so it never hangs.
@@ -61,7 +106,9 @@ const nickname = authKit.takeNickname();               // after sign-up, save it
 ```
 src/
   createAuthKit.ts     puts the pieces below together and returns the kit
-  types.ts             AuthKitOptions, AuthState, NativeProviders, AppleResult
+  types.ts             AuthKitOptions, AuthState (Firebase)
+  providerTypes.ts     NativeProviders, AppleResult (shared, no backend)
+  screenKit.ts         ScreenKit: what the sign-in screen needs from a kit (both kits fit it)
   nickname.ts          the nickname typed at sign-up (kept once, cut by whole characters, forgotten on failure, sign-out or the next ordinary sign-in)
   resetCooldown.ts     one reset email per address per minute
   passwordRules.ts     the password rules shared by sign-up and change password
@@ -71,13 +118,25 @@ src/
   deleteAccount.ts     re-confirm, erase the app's data once, revoke Apple, remove the login
   useAuth.ts           the sign-in state hook
   errors.ts  messages.ts   error codes and the plain-language texts
+  supabase/            the Supabase kit: createSupabaseAuthKit, providers, deleteAccount, useSupabaseAuth, errors (Supabase codes to auth/... codes), messages
   SignInScreen.tsx     the screen; useAuthForm.ts, AuthFields.tsx, SocialButtons.tsx, AuthLinks.tsx, signInStyles.ts, useStable.ts, Reveal.tsx, googleMark.ts (the Google logo) are its parts
-tests/                 vitest, with stand-ins for firebase/auth and app-core-kit in tests/stubs/
+tests/                 vitest, with stand-ins for firebase/auth and app-core-kit in tests/stubs/; tests/supabase.test.tsx uses a stand-in Supabase client
+typetests/             compile-time checks that both kits fit the screen and share the same actions
+supabase.ts            the `app-auth-kit/supabase` entry
 ```
 
 ## Tests
 
-`npm install` (an `.npmrc` keeps npm from looking for app-core-kit on the registry) then `npm test` (vitest, 57 tests, including the real sign-in screen rendered with a small react-native stand-in) and `npm run typecheck`. The tests use stand-ins for `firebase/auth` and `app-core-kit` (`tests/stubs/`).
+`npm install` (an `.npmrc` keeps npm from looking for app-core-kit on the registry) then `npm test` (vitest, 88 tests: 59 for Firebase and the screen, 29 for Supabase, including the real sign-in screen rendered with a small react-native stand-in) and `npm run typecheck`. The tests use stand-ins for `firebase/auth` and `app-core-kit` (`tests/stubs/`).
+
+## Upgrading from 1.10 to 1.11
+
+Nothing changes for Firebase apps: the Firebase files are untouched, and the files that did change compile to the same JavaScript. What is new:
+
+- `app-auth-kit/supabase` (above), with its own tests.
+- `SignInScreen` takes any kit that has what the screen uses (`ScreenKit`); the Firebase `AuthKit` fits it as before.
+- `AppleResult` and `NativeProviders` moved to `src/providerTypes.ts` and are still exported from the same places.
+- `firebase` and `@supabase/supabase-js` are both optional peers: install the one you use. Your app already lists `firebase` because it imports it.
 
 ## Upgrading from 1.9 to 1.10
 
