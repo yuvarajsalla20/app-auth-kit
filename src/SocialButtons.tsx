@@ -1,6 +1,6 @@
 import { Image, Pressable, View, type Text as RNText } from 'react-native';
 import type { ComponentProps, ComponentType } from 'react';
-import type { AuthKit } from './createAuthKit';
+import type { ScreenKit } from './screenKit';
 import { GOOGLE_MARK } from './googleMark';
 import type { AuthStyles } from './signInStyles';
 import type { AuthComponents, AuthStrings } from './theme';
@@ -8,7 +8,7 @@ import type { AuthForm } from './useAuthForm';
 
 interface Props {
   form: AuthForm;
-  kit: AuthKit;
+  kit: ScreenKit;
   t: AuthStrings;
   styles: AuthStyles;
   Text: ComponentType<ComponentProps<typeof RNText>>;

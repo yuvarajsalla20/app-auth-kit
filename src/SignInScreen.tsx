@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text as RNText, TextInput as RNTextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { AuthKit } from './createAuthKit';
+import type { ScreenKit } from './screenKit';
 import { AuthFields } from './AuthFields';
 import { AuthLinks } from './AuthLinks';
 import { Reveal } from './Reveal';
@@ -12,7 +12,7 @@ import { useAuthForm } from './useAuthForm';
 import { useStable } from './useStable';
 
 export interface SignInScreenProps {
-  kit: AuthKit;
+  kit: ScreenKit;
   brand: AuthBrand;
   theme?: Partial<AuthTheme>;
   strings?: Partial<AuthStrings>;

@@ -2,23 +2,8 @@ import type { Auth, User } from 'firebase/auth';
 
 export type AuthState = { status: 'loading' } | { status: 'out' } | { status: 'in'; user: User };
 
-/** What Apple hands back. `rawNonce` is the unhashed value whose SHA-256 was sent to Apple. */
-export interface AppleResult {
-  idToken: string;
-  rawNonce: string;
-  /** Needed to revoke Apple's access when the account is deleted. */
-  authorizationCode?: string | null;
-}
-
-/**
- * The phone's own sign-in sheets, supplied by the app so this package needs no native modules.
- * Each returns null when the person cancels, and throws on a real failure.
- */
-export interface NativeProviders {
-  /** Returns a Google ID token. */
-  google?: () => Promise<string | null>;
-  apple?: () => Promise<AppleResult | null>;
-}
+export type { AppleResult, NativeProviders } from './providerTypes';
+import type { NativeProviders } from './providerTypes';
 
 export interface AuthKitOptions {
   /** The app's own Firebase Auth instance, or null while the app has no Firebase settings. */
