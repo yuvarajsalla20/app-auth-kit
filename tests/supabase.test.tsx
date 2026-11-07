@@ -144,6 +144,12 @@ describe('Google and Apple', () => {
     await kit.signInGoogle();
     expect(auth.signInWithOAuth).toHaveBeenCalledWith({ provider: 'google', options: { redirectTo: 'https://app/cb' } });
   });
+  it('web Apple goes through the redirect', async () => {
+    const { auth, kit } = kitFor(null, { apple: true, oauthRedirectTo: 'https://app/cb' });
+    expect(kit.apple).toBe(true);
+    await kit.signInApple();
+    expect(auth.signInWithOAuth).toHaveBeenCalledWith({ provider: 'apple', options: { redirectTo: 'https://app/cb' } });
+  });
   it('Apple passes the token and the raw nonce', async () => {
     const apple = vi.fn(async () => ({ idToken: 'a-token', rawNonce: 'n1', authorizationCode: 'c1' }));
     const { auth, kit } = kitFor(null, { native: { apple } });
@@ -232,6 +238,14 @@ describe('deleteAccount', () => {
     expect(revokeApple).toHaveBeenCalledWith('code-1');
     expect(onError).toHaveBeenCalledWith('apple-revoke', expect.any(Error));
     expect(rpc).toHaveBeenCalled();
+  });
+  it('an Apple-only account deletes on the web with the open session as proof (no revoke code there)', async () => {
+    const revokeApple = vi.fn();
+    const { rpc, kit } = kitFor(userWith(['apple']), { apple: true, revokeApple });
+    expect(kit.confirmsWithPassword()).toBe(false);
+    await kit.deleteAccount('', async () => {});
+    expect(revokeApple).not.toHaveBeenCalled();
+    expect(rpc).toHaveBeenCalledWith('delete_user');
   });
   it('a failed login removal is reported and thrown', async () => {
     const onError = vi.fn();
