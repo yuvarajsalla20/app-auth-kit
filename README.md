@@ -86,6 +86,7 @@ What is different on Supabase:
 - **Apple revoke** needs Apple's client secret, so it runs on your server: pass `revokeApple(code)`. Without it the account is still deleted. A failed revoke calls `onError('apple-revoke', error)` and the delete goes on, like the Firebase kit.
 - **Email confirmation**: if the project asks people to confirm their email, sign-up has no session yet and rejects with `auth/check-email` ("Check your email and tap the link..."). Supabase answers the same way for an address that already has an account, so the screen cannot reveal who has one. The typed nickname is not carried to that later sign-in.
 - **Web Google** goes through Supabase's redirect (`oauthRedirectTo`). On the web, delete account with Google relies on the open session (Supabase has no popup re-check); phones confirm with Google's sheet.
+- **Web Apple** (`apple: true`, 1.12) goes through the same redirect. It needs an Apple Services ID and client secret in Supabase. On the web, delete account with Apple relies on the open session; Apple's token is only revoked from the iPhone sheet.
 - Supabase error codes are turned into the same `auth/...` codes, so your `messages` overrides keep working. An unknown one shows as `supabase/<code>`.
 - Set `minPassword` to the minimum in Supabase > Authentication > Providers > Email.
 

@@ -10,6 +10,8 @@ export interface SupabaseAuthKitOptions {
   supabase: SupabaseClient | null;
   /** Show "Continue with Google" through Supabase's web redirect (web only). On phones pass `native.google` instead. */
   google?: boolean;
+  /** Show "Sign in with Apple" through Supabase's web redirect (web only; needs an Apple Services ID in Supabase). On iPhone pass `native.apple` instead. */
+  apple?: boolean;
   /** Phone sign-in sheets for Apple and Google. A provider left out is hidden. */
   native?: NativeProviders;
   /** Shortest password accepted at sign-up and when changing it. Match the minimum set in the Supabase dashboard. */

@@ -44,6 +44,9 @@ export const createSupabaseDeleteAccount = ({ requireClient, currentUser, provid
       // On phones Google's sheet confirms it. On the web the open session is the proof (Supabase has no popup re-check),
       // and the app's own confirmation panel has already asked.
       if (native.google) await providers.google();
+    } else if (providers.hasProvider('apple')) {
+      // Apple on the web (no sheet here): the open session is the proof, as with Google. Apple's token can only be
+      // revoked with a code from the iPhone sheet, so that step is skipped on the web.
     } else {
       throw coded('Cannot confirm this sign-in method here.', 'auth/requires-recent-login');
     }

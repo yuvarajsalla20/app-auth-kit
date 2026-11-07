@@ -18,7 +18,7 @@ import { createUseSupabaseAuth } from './useSupabaseAuth';
 export const createSupabaseAuthKit = (options: SupabaseAuthKitOptions) => {
   const { supabase: client, native = {}, minPassword = 8, maxNickname = 20, deleteTimeoutMs = 30_000, resetCooldownMs = 60_000 } = options;
   const google = !!(options.google || native.google);
-  const apple = !!native.apple;
+  const apple = !!(options.apple || native.apple);
   const messages: Record<string, string> = { ...DEFAULT_MESSAGES, ...SUPABASE_MESSAGES, 'auth/weak-password': `Use at least ${minPassword} characters.`, ...options.messages };
 
   const requireClient = (): SupabaseClient => {
@@ -109,8 +109,13 @@ export const createSupabaseAuthKit = (options: SupabaseAuthKitOptions) => {
         return unwrap(requireClient().auth.signInWithOAuth({ provider: 'google', options: options.oauthRedirectTo ? { redirectTo: options.oauthRedirectTo } : undefined }));
       }),
 
-    /** Signs in (or creates the account) with Apple's sheet. Apple may hide the email address; that is fine. */
-    signInApple: () => nickname.run(async () => keep((await providers.apple()).data)),
+    /** Signs in (or creates the account) with Apple's sheet, or on the web through Apple's page. Apple may hide the email address; that is fine. */
+    signInApple: () =>
+      nickname.run(async () => {
+        if (native.apple) return keep((await providers.apple()).data);
+        // Web: Supabase takes the browser to Apple and back to `oauthRedirectTo`.
+        return unwrap(requireClient().auth.signInWithOAuth({ provider: 'apple', options: options.oauthRedirectTo ? { redirectTo: options.oauthRedirectTo } : undefined }));
+      }),
 
     /** Emails a reset link to an address (the "Forgot password" case). An address with no account looks the same as one that has. */
     sendPasswordReset: (email: string) => sendReset(email.trim()),
