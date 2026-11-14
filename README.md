@@ -130,6 +130,10 @@ supabase.ts            the `app-auth-kit/supabase` entry
 
 `npm install` (an `.npmrc` keeps npm from looking for app-core-kit on the registry) then `npm test` (vitest, 88 tests: 59 for Firebase and the screen, 29 for Supabase, including the real sign-in screen rendered with a small react-native stand-in) and `npm run typecheck`. The tests use stand-ins for `firebase/auth` and `app-core-kit` (`tests/stubs/`).
 
+## Upgrading to 1.13
+
+Nothing changes for apps that pass their own `native` functions. New: `app-auth-kit/native` with `expoNativeProviders`, `AppleButton`, `makeAppleButton` and `APPLE_BUTTON`, so an app can delete its own copies.
+
 ## Upgrading from 1.10 to 1.11
 
 Nothing changes for Firebase apps: the Firebase files are untouched, and the files that did change compile to the same JavaScript. What is new:
@@ -169,6 +173,19 @@ Peer dependencies: `app-core-kit` (install it from GitHub too, pinned the same w
 
 ## Apple and Google on phones (v1.2)
 
+**Ready made (v1.13).** An Expo app no longer writes the sheets or the Apple button itself:
+
+```ts
+import { AppleButton, expoNativeProviders } from 'app-auth-kit/native';
+import { Platform } from 'react-native';
+
+createAuthKit({ auth, native: expoNativeProviders({ os: Platform.OS, googleIosClientId: GOOGLE_IOS_CLIENT_ID }) });
+<SignInScreen kit={kit} components={{ Text, TextInput, AppleButton }} ... />
+```
+
+`expoNativeProviders` offers Apple on iPhone, and Google once its client ID is set (empty hides it). `AppleButton` is Apple's own button in the approved size (white, 52 pt, 14 pt corners); `makeAppleButton({ dark: true })` makes a black one for a light screen. The app installs `expo-apple-authentication`, `expo-crypto` and `@react-native-google-signin/google-signin` (optional peers). Writing your own `native` functions, as below, still works.
+
+
 The kit has no native dependencies. The app supplies the phone's sign-in sheets; the kit signs the token in to Firebase,
 shows the buttons, re-confirms with the same method before deleting an account, and revokes Apple's token on delete.
 
@@ -190,4 +207,4 @@ Firebase console: enable the Apple and Google providers, and keep "Link accounts
 Version: `import { KIT_VERSION } from 'app-auth-kit'` gives the installed version. Pass it, with the other kits' versions, to the account kit's `kitsLine` so the app can show and report every kit version in one line.
 
 ---
-Version 1.10.0 - 2026-11-04 11:40 PM CT
+Version 1.13.0 - 2026-11-14
