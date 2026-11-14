@@ -87,9 +87,11 @@ export const createAuthKit = (options: AuthKitOptions) => {
 
     ...createPasswordActions({ requireAuth, providers, minPassword, sendReset }),
 
-    signOut: () => {
+    signOut: async () => {
       nickname.forget();
-      return firebaseSignOut(requireAuth());
+      await firebaseSignOut(requireAuth());
+      // Also forget the phone's Google sign-in, so the next person picks their own account. A failure here must not undo the sign-out.
+      await native.signOut?.().catch((e) => options.onError?.('native-sign-out', e));
     },
 
     /** See `deleteAccount.ts`. */

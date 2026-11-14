@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { expoNativeProviders } from '../src/native/providers';
 
 const apple = { signInAsync: vi.fn() };
-const google = { configure: vi.fn(), signIn: vi.fn() };
+const google = { configure: vi.fn(), signIn: vi.fn(), signOut: vi.fn(async () => {}) };
 
 vi.mock('expo-apple-authentication', () => ({ AppleAuthenticationScope: { EMAIL: 1 }, signInAsync: (...a: unknown[]) => apple.signInAsync(...a) }));
 vi.mock('expo-crypto', () => ({ CryptoDigestAlgorithm: { SHA256: 'sha' }, randomUUID: () => 'raw', digestStringAsync: async (_: string, s: string) => `hash(${s})` }));
@@ -43,5 +43,11 @@ describe('expoNativeProviders', () => {
     expect(await signIn!()).toBeNull();
     google.signIn.mockResolvedValue({ type: 'success', data: { idToken: null } });
     await expect(signIn!()).rejects.toMatchObject({ code: 'auth/missing-token' });
+  });
+
+  it('Sign Out forgets the Google account only when Google is set up', async () => {
+    expect(expoNativeProviders({ os: 'ios' }).signOut).toBeUndefined();
+    await expoNativeProviders({ os: 'ios', googleIosClientId: 'g' }).signOut!();
+    expect(google.signOut).toHaveBeenCalledOnce();
   });
 });

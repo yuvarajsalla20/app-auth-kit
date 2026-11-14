@@ -16,4 +16,6 @@ export interface NativeProviders {
   /** Returns a Google ID token. */
   google?: () => Promise<string | null>;
   apple?: () => Promise<AppleResult | null>;
+  /** Forgets the phone's own sign-in sheets on Sign Out (Google remembers the last account), so the next person chooses their own. */
+  signOut?: () => Promise<void>;
 }

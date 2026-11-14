@@ -37,10 +37,18 @@ const google = (iosClientId: string): NonNullable<NativeProviders['google']> => 
   return result.data.idToken;
 };
 
+/** Google keeps the last account on the phone; signing out of it makes the next Google sign-in ask which account. */
+const googleSignOut = async (): Promise<void> => {
+  const { GoogleSignin } = await import('@react-native-google-signin/google-signin');
+  await GoogleSignin.signOut();
+};
+
 /**
  * The iPhone's own Apple and Google sign-in sheets, ready made for an Expo app: pass the result as `createAuthKit({ native })`.
  * The native modules load only when a button is tapped, and each sheet returns null when the person cancels.
  * Needs `expo-apple-authentication` and `expo-crypto` (Apple) and `@react-native-google-signin/google-signin` (Google) in the app.
  */
 export const expoNativeProviders = ({ googleIosClientId, apple: withApple = true, os }: ExpoNativeOptions): NativeProviders =>
-  os === 'ios' ? { apple: withApple ? apple : undefined, google: googleIosClientId ? google(googleIosClientId) : undefined } : {};
+  os === 'ios'
+    ? { apple: withApple ? apple : undefined, google: googleIosClientId ? google(googleIosClientId) : undefined, signOut: googleIosClientId ? googleSignOut : undefined }
+    : {};

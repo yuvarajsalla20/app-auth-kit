@@ -128,11 +128,13 @@ supabase.ts            the `app-auth-kit/supabase` entry
 
 ## Tests
 
-`npm install` (an `.npmrc` keeps npm from looking for app-core-kit on the registry) then `npm test` (vitest, 88 tests: 59 for Firebase and the screen, 29 for Supabase, including the real sign-in screen rendered with a small react-native stand-in) and `npm run typecheck`. The tests use stand-ins for `firebase/auth` and `app-core-kit` (`tests/stubs/`).
+`npm install` (an `.npmrc` keeps npm from looking for app-core-kit on the registry) then `npm test` (vitest, 95 tests: 59 for Firebase and the screen, 29 for Supabase, including the real sign-in screen rendered with a small react-native stand-in) and `npm run typecheck`. The tests use stand-ins for `firebase/auth` and `app-core-kit` (`tests/stubs/`).
 
 ## Upgrading to 1.13
 
 Nothing changes for apps that pass their own `native` functions. New: `app-auth-kit/native` with `expoNativeProviders`, `AppleButton`, `makeAppleButton` and `APPLE_BUTTON`, so an app can delete its own copies.
+
+Sign Out now also signs the phone out of Google (`native.signOut`, which `expoNativeProviders` fills in when Google is set up), so the next person on a shared phone chooses their own Google account. Picking a different Apple or Google account while confirming Delete Account now says so plainly (`auth/user-mismatch`).
 
 ## Upgrading from 1.10 to 1.11
 

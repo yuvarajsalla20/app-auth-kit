@@ -87,4 +87,13 @@ describe('deleteAccount (other sign-in methods)', () => {
     const k = createAuthKit({ auth: { currentUser: null } as never });
     await expect(k.deleteAccount('', async () => {})).rejects.toThrow('Sign in first.');
   });
+
+  it('Sign Out also forgets the phone sheet, and its failure does not undo the sign-out', async () => {
+    const onError = vi.fn();
+    const signOut = vi.fn(async () => { throw new Error('google down'); });
+    const k = createAuthKit({ auth: authWith(['google.com']), native: { signOut }, onError });
+    await k.signOut();
+    expect(signOut).toHaveBeenCalledOnce();
+    expect(onError).toHaveBeenCalledWith('native-sign-out', expect.any(Error));
+  });
 });
