@@ -21,6 +21,8 @@ export interface SignInScreenProps {
   nickname?: boolean;
   /** Show "Forgot password?" on the sign-in form. */
   forgotPassword?: boolean;
+  /** A small label above the text in each box ("Email", "Password"), with a hint inside. Off: the label is the hint. */
+  labels?: boolean;
   /** Called when "Privacy policy" is tapped. Leave out to hide the link. */
   onOpenPrivacy?: () => void;
 }
@@ -34,6 +36,7 @@ export function SignInScreen({
   components,
   nickname: askNickname = false,
   forgotPassword = true,
+  labels = false,
   onOpenPrivacy,
 }: SignInScreenProps) {
   // Inline `theme={{ ... }}` objects are fine: they are compared by value, so the styles are rebuilt only when a color changes.
@@ -65,10 +68,11 @@ export function SignInScreen({
         </Reveal>
 
         <Reveal delay={250} style={styles.form}>
-          <AuthFields form={form} kit={kit} t={t} theme={theme} styles={styles} TextInput={TextInput} askNickname={askNickname} />
+          <AuthFields form={form} kit={kit} t={t} theme={theme} styles={styles} TextInput={TextInput} Text={Text} askNickname={askNickname} labels={labels} />
           {note && <Text style={[styles.note, note.good && styles.good]} accessibilityLiveRegion="polite">{note.text}</Text>}
           <Pressable onPress={form.submit} disabled={off} accessibilityRole="button" accessibilityLabel={signingUp ? t.createAccount : t.signIn} accessibilityState={{ disabled: off, busy }} style={[styles.primary, off && styles.disabled]}>
-            {busy ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.primaryText}>{signingUp ? t.createAccount : t.signIn}</Text>}
+            {brand.button ? <View style={styles.primaryFill} pointerEvents="none">{brand.button}</View> : null}
+            {busy ? <ActivityIndicator color={theme.onPrimary ?? theme.bg} /> : <Text style={styles.primaryText}>{signingUp ? t.createAccount : t.signIn}</Text>}
           </Pressable>
           <SocialButtons form={form} kit={kit} t={t} styles={styles} Text={Text} AppleButton={components?.AppleButton} />
         </Reveal>

@@ -10,6 +10,16 @@ export interface AuthTheme {
   muted: string;
   accent: string;
   danger: string;
+  /** Fill of the text boxes. Defaults to `surface`. */
+  field?: string;
+  /** The small labels above the text boxes (with `labels`). Defaults to `muted`. */
+  label?: string;
+  /** The main button's fill when no `brand.button` is drawn. Defaults to `text`. */
+  primary?: string;
+  /** The main button's words and spinner. Defaults to `bg`. */
+  onPrimary?: string;
+  /** A soft colored glow under the main button. None by default. */
+  glow?: string;
 }
 
 export const DEFAULT_THEME: AuthTheme = {
@@ -37,12 +47,18 @@ export interface AuthBrand {
   logo?: ReactNode;
   /** Drawn behind the whole screen (a starfield, a gradient). */
   backdrop?: ReactNode;
+  /** Drawn inside the main button, behind its words (a gradient). It fills the button and is clipped to its corners. */
+  button?: ReactNode;
 }
 
 /** Every piece of wording on the screen, so an app can translate or reword it. */
 export interface AuthStrings {
   email: string;
+  /** The hint inside the email box when `labels` is on (the label above already says "Email"). */
+  emailHint: string;
   password: string;
+  /** The hint inside the password box when `labels` is on. */
+  passwordHint: (min: number) => string;
   passwordNew: (min: number) => string;
   nickname: string;
   signIn: string;
@@ -62,7 +78,9 @@ export interface AuthStrings {
 
 export const DEFAULT_STRINGS: AuthStrings = {
   email: 'Email',
+  emailHint: 'you@example.com',
   password: 'Password',
+  passwordHint: (min) => `${min} or more characters`,
   passwordNew: (min) => `Password (${min}+ characters)`,
   nickname: 'Nickname (optional)',
   signIn: 'Sign in',

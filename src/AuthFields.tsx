@@ -1,5 +1,5 @@
-import { useRef, useState, type ComponentProps, type ComponentType, type ElementRef, type RefObject } from 'react';
-import { TextInput as RNTextInput } from 'react-native';
+import { useRef, useState, type ComponentProps, type ReactElement, type ComponentType, type ElementRef, type RefObject } from 'react';
+import { TextInput as RNTextInput, View, type Text as RNText } from 'react-native';
 import type { ScreenKit } from './screenKit';
 import type { AuthStyles } from './signInStyles';
 import type { AuthStrings, AuthTheme } from './theme';
@@ -12,11 +12,14 @@ interface Props {
   theme: AuthTheme;
   styles: AuthStyles;
   TextInput: ComponentType<ComponentProps<typeof RNTextInput>>;
+  Text: ComponentType<ComponentProps<typeof RNText>>;
   askNickname: boolean;
+  /** A small label above the text in each box, with a hint inside. */
+  labels: boolean;
 }
 
 /** Email, password and (when signing up) nickname inputs. */
-export function AuthFields({ form, kit, t, theme, styles, TextInput, askNickname }: Props) {
+export function AuthFields({ form, kit, t, theme, styles, TextInput, Text, askNickname, labels }: Props) {
   const [focus, setFocus] = useState<string | null>(null);
   // Next on the keyboard moves from email to password to nickname; the last box signs in.
   const passwordBox = useRef<ElementRef<typeof RNTextInput>>(null);
@@ -27,18 +30,28 @@ export function AuthFields({ form, kit, t, theme, styles, TextInput, askNickname
   const common = (name: string) => ({
     placeholderTextColor: theme.muted,
     autoCorrect: false,
-    style: [styles.input, focus === name && styles.focused],
+    style: labels ? styles.boxInput : [styles.input, focus === name && styles.focused],
     onFocus: () => setFocus(name),
     onBlur: () => setFocus((current) => (current === name ? null : current)),
   });
   const { signingUp } = form;
+  // With labels, each box is a frame around a small label and the text; a tap anywhere in it lands in the text.
+  const framed = (name: string, label: string, input: ReactElement) =>
+    labels ? (
+      <View style={[styles.box, focus === name && styles.focused]}>
+        <Text style={styles.boxLabel} accessible={false} importantForAccessibility="no">{label}</Text>
+        {input}
+      </View>
+    ) : (
+      input
+    );
   return (
     <>
-      <TextInput
+      {framed('email', t.email, <TextInput
         {...common('email')}
         value={form.email}
         onChangeText={form.setEmail}
-        placeholder={t.email}
+        placeholder={labels ? t.emailHint : t.email}
         autoCapitalize="none"
         keyboardType="email-address"
         textContentType="username"
@@ -46,22 +59,21 @@ export function AuthFields({ form, kit, t, theme, styles, TextInput, askNickname
         accessibilityLabel={t.email}
         returnKeyType={chain ? 'next' : undefined}
         onSubmitEditing={() => passwordBox.current?.focus()}
-      />
-      <TextInput
+      />)}
+      {framed('password', t.password, <TextInput
         {...ref(passwordBox)}
         {...common('password')}
         value={form.password}
         onChangeText={form.setPassword}
-        placeholder={signingUp ? t.passwordNew(kit.minPassword) : t.password}
+        placeholder={labels ? t.passwordHint(kit.minPassword) : signingUp ? t.passwordNew(kit.minPassword) : t.password}
         secureTextEntry
         textContentType={signingUp ? 'newPassword' : 'password'}
         autoComplete={signingUp ? 'new-password' : 'current-password'}
         returnKeyType={chain && signingUp && askNickname ? 'next' : 'go'}
         onSubmitEditing={() => (chain && signingUp && askNickname ? nickBox.current?.focus() : form.ready && !form.busy && form.submit())}
         accessibilityLabel={t.password}
-      />
-      {signingUp && askNickname && (
-        <TextInput
+      />)}
+      {signingUp && askNickname && framed('nickname', t.nickname, <TextInput
           {...ref(nickBox)}
           {...common('nickname')}
           value={form.nick}
@@ -74,8 +86,7 @@ export function AuthFields({ form, kit, t, theme, styles, TextInput, askNickname
           accessibilityLabel={t.nickname}
           returnKeyType="go"
           onSubmitEditing={() => form.ready && !form.busy && form.submit()}
-        />
-      )}
+        />)}
     </>
   );
 }

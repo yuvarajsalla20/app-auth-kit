@@ -176,3 +176,29 @@ describe('the Google button', () => {
     expect(screen(fakeKit({ google: false })).root.root.findAll((n) => n.type === 'Image')).toHaveLength(0);
   });
 });
+
+describe('SignInScreen labels and button art (v1.14)', () => {
+  it('puts a small label above each box and a hint inside, and still signs in', async () => {
+    const kit = fakeKit();
+    const h = screen(kit, { labels: true });
+    expect(h.shown(S.email)).toBe(true);
+    expect(h.label(S.email).props.placeholder).toBe(S.emailHint);
+    expect(h.label(S.password).props.placeholder).toBe(S.passwordHint(8));
+    await type(h.label(S.email), 'a@b.com');
+    await type(h.label(S.password), 'pw');
+    await press(h.text(S.signIn)!);
+    expect(kit.signInEmail).toHaveBeenCalled();
+  });
+
+  it('keeps the plain boxes by default', () => {
+    const h = screen();
+    expect(h.label(S.email).props.placeholder).toBe(S.email);
+  });
+
+  it('draws brand.button inside the main button, behind its words', () => {
+    const Art = () => null;
+    const h = mount(<SignInScreen kit={fakeKit()} brand={{ name: 'App', button: <Art /> }} />);
+    const button = h.text(S.signIn)!;
+    expect(button.findAllByType(Art).length).toBe(1);
+  });
+});
