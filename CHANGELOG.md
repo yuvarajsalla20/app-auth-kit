@@ -2,6 +2,10 @@
 
 Upgrade notes for app-auth-kit, newest first. Each version is tagged in git (`v1.14.0`). Every 1.x release is backward compatible unless a note says otherwise.
 
+## 1.14.1
+
+Nothing to change in apps: the kit's own tests now run on React 19.3.0 and React Native 0.88.1, the versions the apps ship (they ran on React 18.3 and React Native 0.76 before). Code is unchanged.
+
 ## 1.14.0
 
 Nothing to change: every addition is optional and the screen looks the same without it.
