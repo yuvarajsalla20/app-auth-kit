@@ -141,6 +141,8 @@ export const createSupabaseAuthKit = (options: SupabaseAuthKitOptions) => {
       const { error } = await requireClient().auth.signOut();
       user = null;
       if (error) throw fromSupabase(error);
+      // Also forget the phone's Google sign-in, so the next person picks their own account.
+      await native.signOut?.().catch((e) => options.onError?.('native-sign-out', e));
     },
 
     /** See `deleteAccount.ts`. */

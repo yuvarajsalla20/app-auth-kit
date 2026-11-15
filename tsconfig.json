@@ -11,5 +11,5 @@
     "types": [],
     "paths": { "app-core-kit": ["./tests/stubs/app-core-kit.ts"] }
   },
-  "include": ["src", "supabase.ts", "typetests"]
+  "include": ["src", "supabase.ts", "native.ts", "typetests"]
 }
