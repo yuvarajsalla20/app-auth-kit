@@ -130,6 +130,14 @@ supabase.ts            the `app-auth-kit/supabase` entry
 
 `npm install` (an `.npmrc` keeps npm from looking for app-core-kit on the registry) then `npm test` (vitest, 95 tests: 59 for Firebase and the screen, 29 for Supabase, including the real sign-in screen rendered with a small react-native stand-in) and `npm run typecheck`. The tests use stand-ins for `firebase/auth` and `app-core-kit` (`tests/stubs/`).
 
+## Upgrading to 1.14
+
+Nothing to change: every addition is optional and the screen looks the same without it.
+
+- `labels` (prop): each box shows a small label ("Email", "Password") above the text, with a hint inside (`strings.emailHint`, `strings.passwordHint`).
+- `brand.button`: art drawn inside the main button, behind its words (a gradient), clipped to its corners.
+- `theme.field`, `theme.label`, `theme.primary`, `theme.onPrimary`, `theme.glow`: box fill, label color, main button fill and words, and a soft colored glow under the main button.
+
 ## Upgrading to 1.13
 
 Nothing changes for apps that pass their own `native` functions. New: `app-auth-kit/native` with `expoNativeProviders`, `AppleButton`, `makeAppleButton` and `APPLE_BUTTON`, so an app can delete its own copies.
@@ -209,4 +217,4 @@ Firebase console: enable the Apple and Google providers, and keep "Link accounts
 Version: `import { KIT_VERSION } from 'app-auth-kit'` gives the installed version. Pass it, with the other kits' versions, to the account kit's `kitsLine` so the app can show and report every kit version in one line.
 
 ---
-Version 1.13.0 - 2026-11-14
+Version 1.14.0 - 2026-11-15
