@@ -15,6 +15,10 @@ export const makeStyles = (c: AuthTheme) =>
     /** With `labels`: one box holding a small label and the text, like Apple's Wallet forms. */
     box: { backgroundColor: c.field ?? c.surface, borderColor: c.border, borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, paddingTop: 9, paddingBottom: 4 },
     boxLabel: { color: c.label ?? c.muted, fontSize: 12, fontWeight: '700', letterSpacing: 0.3 },
+    secret: { position: 'relative' },
+    withEye: { paddingRight: 56 },
+    eye: { position: 'absolute', right: 0, top: 0, bottom: 0, minWidth: 48, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
+    eyeText: { color: c.muted, fontSize: 14, fontWeight: '600' },
     boxInput: { color: c.text, fontSize: 16, height: 30, padding: 0 },
     note: { color: c.danger, fontSize: 13, lineHeight: 18 },
     good: { color: c.accent },

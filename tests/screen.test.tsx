@@ -202,3 +202,54 @@ describe('SignInScreen labels and button art (v1.14)', () => {
     expect(button.findAllByType(Art).length).toBe(1);
   });
 });
+
+describe('SignInScreen confirm password and show/hide', () => {
+  it('asks for the password twice when creating an account, and keeps the button off until both match', async () => {
+    const kit = fakeKit();
+    const h = screen(kit, { confirmPassword: true });
+    expect(h.label(S.confirmPassword)).toBeUndefined();
+    await press(h.text(S.newHere)!);
+    await type(h.label(S.email), 'a@b.com');
+    await type(h.label(S.password), 'long-enough');
+    expect(h.text(S.createAccount)!.props.disabled).toBe(true);
+    expect(h.shown(S.passwordsDiffer)).toBe(false);
+    await type(h.label(S.confirmPassword), 'long-enougH');
+    expect(h.shown(S.passwordsDiffer)).toBe(true);
+    expect(h.text(S.createAccount)!.props.disabled).toBe(true);
+    await type(h.label(S.confirmPassword), 'long-enough');
+    expect(h.shown(S.passwordsDiffer)).toBe(false);
+    await press(h.text(S.createAccount)!);
+    expect(kit.signUpEmail).toHaveBeenCalledWith('a@b.com', 'long-enough', '');
+  });
+
+  it('never asks twice when signing in, or when the app leaves it off', async () => {
+    const h = screen(fakeKit(), { confirmPassword: true });
+    await type(h.label(S.email), 'a@b.com');
+    await type(h.label(S.password), 'x');
+    expect(h.text(S.signIn)!.props.disabled).toBe(false);
+    const off = screen();
+    await press(off.text(S.newHere)!);
+    expect(off.label(S.confirmPassword)).toBeUndefined();
+  });
+
+  it('shows and hides both passwords with one button, and draws the app\'s eye when given', async () => {
+    const h = screen(fakeKit(), { confirmPassword: true, showPassword: true });
+    await press(h.text(S.newHere)!);
+    expect(h.label(S.password).props.secureTextEntry).toBe(true);
+    await press(h.label(S.showPassword));
+    expect(h.label(S.password).props.secureTextEntry).toBe(false);
+    expect(h.label(S.confirmPassword).props.secureTextEntry).toBe(false);
+    expect(h.shown(S.hide)).toBe(true);
+    await press(h.label(S.hidePassword));
+    expect(h.label(S.password).props.secureTextEntry).toBe(true);
+    const Eye = ({ visible }: { visible: boolean }) => <>{visible ? 'open-eye' : 'shut-eye'}</>;
+    const e = screen(fakeKit(), { showPassword: true, components: { PasswordEye: Eye } });
+    expect(e.root.root.findAll((n) => n.type === Eye)[0]!.props.visible).toBe(false);
+    expect(e.shown(S.show)).toBe(false);
+  });
+
+  it('has no show/hide button unless the app asks for one', () => {
+    const h = screen();
+    expect(h.label(S.showPassword)).toBeUndefined();
+  });
+});

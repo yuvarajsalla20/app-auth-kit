@@ -142,6 +142,8 @@ describeError={authKit.message}
 | `components` | `{ Text?, TextInput?, AppleButton? }`. A custom `TextInput` should `forwardRef` so the keyboard's Next key moves between boxes |
 | `labels` | A small label ("Email", "Password") above each box, with a hint inside |
 | `nickname` | Ask for a nickname at sign-up |
+| `confirmPassword` | Ask for the password twice at sign-up; the button waits until both match |
+| `showPassword` | A show/hide button in each password box (icon from `components.PasswordEye`, else the words Show / Hide) |
 | `forgotPassword` | Show "Forgot password" (default on) |
 | `onOpenPrivacy` | Adds the privacy link |
 

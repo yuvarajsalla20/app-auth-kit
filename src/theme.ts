@@ -38,6 +38,8 @@ export interface AuthComponents {
   TextInput: ComponentType<ComponentProps<typeof RNTextInput>>;
   /** Apple's own button (it must follow Apple's design rules). The default is a plain white button. */
   AppleButton: ComponentType<{ signUp: boolean; disabled: boolean; onPress: () => void }>;
+  /** The icon on the show/hide password button (with `showPassword`), such as an eye. The default is the word Show or Hide. */
+  PasswordEye?: ComponentType<{ visible: boolean }>;
 }
 
 export interface AuthBrand {
@@ -74,6 +76,15 @@ export interface AuthStrings {
   forgotNeedsEmail: string;
   resetSent: string;
   privacy: string;
+  /** The second password box when creating an account (with `confirmPassword`). */
+  confirmPassword: string;
+  /** Shown while the two passwords differ. */
+  passwordsDiffer: string;
+  /** The show/hide password button (with `showPassword`): its words, and what a screen reader says. */
+  show: string;
+  hide: string;
+  showPassword: string;
+  hidePassword: string;
 }
 
 export const DEFAULT_STRINGS: AuthStrings = {
@@ -96,4 +107,10 @@ export const DEFAULT_STRINGS: AuthStrings = {
   forgotNeedsEmail: 'Enter your email above first, then tap Forgot password.',
   resetSent: 'If that address has an account, a reset email is on its way. Check your inbox, and your spam folder too.',
   privacy: 'Privacy policy',
+  confirmPassword: 'Confirm password',
+  passwordsDiffer: "The passwords don't match.",
+  show: 'Show',
+  hide: 'Hide',
+  showPassword: 'Show password',
+  hidePassword: 'Hide password',
 };

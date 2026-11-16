@@ -23,6 +23,10 @@ export interface SignInScreenProps {
   forgotPassword?: boolean;
   /** A small label above the text in each box ("Email", "Password"), with a hint inside. Off: the label is the hint. */
   labels?: boolean;
+  /** When creating an account, ask for the password twice; the button stays off until both match. */
+  confirmPassword?: boolean;
+  /** A show/hide button in each password box, so people can check what they typed. Its icon comes from `components.PasswordEye`. */
+  showPassword?: boolean;
   /** Called when "Privacy policy" is tapped. Leave out to hide the link. */
   onOpenPrivacy?: () => void;
 }
@@ -37,6 +41,8 @@ export function SignInScreen({
   nickname: askNickname = false,
   forgotPassword = true,
   labels = false,
+  confirmPassword = false,
+  showPassword = false,
   onOpenPrivacy,
 }: SignInScreenProps) {
   // Inline `theme={{ ... }}` objects are fine: they are compared by value, so the styles are rebuilt only when a color changes.
@@ -49,7 +55,7 @@ export function SignInScreen({
   const TextInput = components?.TextInput ?? RNTextInput;
 
   const { top } = useSafeAreaInsets();
-  const form = useAuthForm(kit, t, askNickname);
+  const form = useAuthForm(kit, t, askNickname, confirmPassword);
   const { note, busy, signingUp } = form;
   const off = !form.ready || busy;
 
@@ -68,7 +74,8 @@ export function SignInScreen({
         </Reveal>
 
         <Reveal delay={250} style={styles.form}>
-          <AuthFields form={form} kit={kit} t={t} theme={theme} styles={styles} TextInput={TextInput} Text={Text} askNickname={askNickname} labels={labels} />
+          <AuthFields form={form} kit={kit} t={t} theme={theme} styles={styles} TextInput={TextInput} Text={Text} askNickname={askNickname} labels={labels} showPassword={showPassword} PasswordEye={components?.PasswordEye} />
+          {form.mismatch && <Text style={styles.note} accessibilityLiveRegion="polite">{t.passwordsDiffer}</Text>}
           {note && <Text style={[styles.note, note.good && styles.good]} accessibilityLiveRegion="polite">{note.text}</Text>}
           <Pressable onPress={form.submit} disabled={off} accessibilityRole="button" accessibilityLabel={signingUp ? t.createAccount : t.signIn} accessibilityState={{ disabled: off, busy }} style={[styles.primary, off && styles.disabled]}>
             {brand.button ? <View style={styles.primaryFill} pointerEvents="none">{brand.button}</View> : null}

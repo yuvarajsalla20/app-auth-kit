@@ -2,6 +2,15 @@
 
 Upgrade notes for app-auth-kit, newest first. Each version is tagged in git (`v1.14.0`). Every 1.x release is backward compatible unless a note says otherwise.
 
+## 1.15.0
+
+Nothing to change: both additions are optional and the screen looks the same without them.
+
+- **Confirm password:** `<SignInScreen confirmPassword />` asks for the password twice when creating an account. "Create account" stays off until both match, and "The passwords don't match." shows once the second box differs. Signing in still asks once.
+- **Show/hide password:** `<SignInScreen showPassword />` adds a button at the right end of each password box. One tap shows or hides both boxes. It reads Show / Hide by default. Pass `components.PasswordEye` (`{ visible }`) to draw an eye icon instead.
+- New strings: `confirmPassword`, `passwordsDiffer`, `show`, `hide`, `showPassword`, `hidePassword`.
+- Password boxes no longer auto-capitalize while shown.
+
 ## 1.14.1
 
 Nothing to change in apps: the kit's own tests now run on React 19.3.0 and React Native 0.88.1, the versions the apps ship (they ran on React 18.3 and React Native 0.76 before). Code is unchanged.
