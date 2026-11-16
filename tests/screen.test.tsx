@@ -248,6 +248,22 @@ describe('SignInScreen confirm password and show/hide', () => {
     expect(e.shown(S.show)).toBe(false);
   });
 
+  it('forgets the confirm box and hides the passwords again when switching between sign-in and sign-up', async () => {
+    const h = screen(fakeKit(), { confirmPassword: true, showPassword: true });
+    await press(h.text(S.newHere)!);
+    await type(h.label(S.email), 'a@b.com');
+    await type(h.label(S.password), 'abcdefgh');
+    await type(h.label(S.confirmPassword), 'abcdefgh');
+    await press(h.label(S.showPassword));
+    await press(h.text(S.haveAccount)!);
+    expect(h.label(S.password).props.secureTextEntry).toBe(true);
+    await type(h.label(S.password), 'abcdefgX');
+    await press(h.text(S.newHere)!);
+    expect(h.label(S.confirmPassword).props.value).toBe('');
+    expect(h.shown(S.passwordsDiffer)).toBe(false);
+    expect(h.text(S.createAccount)!.props.disabled).toBe(true);
+  });
+
   it('has no show/hide button unless the app asks for one', () => {
     const h = screen();
     expect(h.label(S.showPassword)).toBeUndefined();

@@ -11,6 +11,8 @@ export function useAuthForm(kit: ScreenKit, t: AuthStrings, askNickname: boolean
   const [password, setPassword] = useState('');
   const [nick, setNick] = useState('');
   const [confirm, setConfirm] = useState('');
+  /** Passwords shown in plain text (the show/hide button). Hidden again whenever the form switches mode. */
+  const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<{ text: string; good?: boolean } | null>(null);
   const running = useRef(false);
@@ -42,7 +44,7 @@ export function useAuthForm(kit: ScreenKit, t: AuthStrings, askNickname: boolean
   };
 
   return {
-    email, setEmail, password, setPassword, nick, setNick, confirm, setConfirm, confirming, mismatch,
+    email, setEmail, password, setPassword, nick, setNick, confirm, setConfirm, confirming, mismatch, visible, setVisible,
     busy, note, signingUp, ready,
     submit: () => run(() => (signingUp ? kit.signUpEmail(email, password, askNickname ? nick : '') : kit.signInEmail(email, password))),
     forgot: () => (email.includes('@') ? run(() => kit.sendPasswordReset(email), t.resetSent) : setNote({ text: t.forgotNeedsEmail })),
@@ -51,6 +53,9 @@ export function useAuthForm(kit: ScreenKit, t: AuthStrings, askNickname: boolean
     switchMode: () => {
       setMode(signingUp ? 'signin' : 'signup');
       setNote(null);
+      // A confirm typed earlier must never match (or clash with) a password changed since; passwords go back to hidden.
+      setConfirm('');
+      setVisible(false);
     },
   };
 }

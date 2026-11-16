@@ -2,6 +2,14 @@
 
 Upgrade notes for app-auth-kit, newest first. Each version is tagged in git (`v1.14.0`). Every 1.x release is backward compatible unless a note says otherwise.
 
+## 1.15.1
+
+Nothing to change in apps.
+
+- `KIT_VERSION` matches package.json again (it said 1.14.1 in 1.15.0).
+- Switching between sign-in and sign-up clears the confirm box and hides the passwords again, so an old confirm can't match a changed password.
+- Passwords show in plain text only while the show/hide button is there to hide them.
+
 ## 1.15.0
 
 Nothing to change: both additions are optional and the screen looks the same without them.
