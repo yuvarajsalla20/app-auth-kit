@@ -146,6 +146,7 @@ describeError={authKit.message}
 | `showPassword` | A show/hide button in each password box (icon from `components.PasswordEye`, else the words Show / Hide) |
 | `forgotPassword` | Show "Forgot password" (default on) |
 | `onOpenPrivacy` | Adds the privacy link |
+| `onOpenFeatures` | Optional (1.16.0). Adds a Features link: "Forgot password?" then gets its own line, with "Features \| Privacy policy" under it |
 
 ## Theming
 

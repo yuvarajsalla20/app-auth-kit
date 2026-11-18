@@ -29,6 +29,11 @@ export interface SignInScreenProps {
   showPassword?: boolean;
   /** Called when "Privacy policy" is tapped. Leave out to hide the link. */
   onOpenPrivacy?: () => void;
+  /**
+   * Called when "Features" is tapped. Leave out to hide the link. When passed, "Forgot password?" gets its own line and
+   * "Features | Privacy policy" sit on the line under it.
+   */
+  onOpenFeatures?: () => void;
 }
 
 /** Sign in or create an account. Looks come from `theme`, `brand` and `components`; behavior comes from `kit`. */
@@ -44,6 +49,7 @@ export function SignInScreen({
   confirmPassword = false,
   showPassword = false,
   onOpenPrivacy,
+  onOpenFeatures,
 }: SignInScreenProps) {
   // Inline `theme={{ ... }}` objects are fine: they are compared by value, so the styles are rebuilt only when a color changes.
   const themeOverride = useStable(themeProp);
@@ -85,7 +91,7 @@ export function SignInScreen({
         </Reveal>
 
         <Reveal delay={350} style={styles.links}>
-          <AuthLinks form={form} t={t} styles={styles} Text={Text} forgotPassword={forgotPassword} onOpenPrivacy={onOpenPrivacy} />
+          <AuthLinks form={form} t={t} styles={styles} Text={Text} forgotPassword={forgotPassword} onOpenPrivacy={onOpenPrivacy} onOpenFeatures={onOpenFeatures} />
         </Reveal>
       </ScrollView>
     </View>

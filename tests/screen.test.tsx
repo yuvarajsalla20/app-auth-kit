@@ -16,6 +16,21 @@ beforeEach(() => {
 });
 
 describe('SignInScreen form', () => {
+  it('Features link (1.16.0): only when passed; Forgot password gets its own line, Features | Privacy under it', async () => {
+    expect(screen(fakeKit(), { onOpenPrivacy: vi.fn() }).shown(S.features)).toBe(false);
+    const onOpenFeatures = vi.fn();
+    const onOpenPrivacy = vi.fn();
+    const h = screen(fakeKit(), { onOpenFeatures, onOpenPrivacy });
+    await press(h.text(S.features)!);
+    expect(onOpenFeatures).toHaveBeenCalledOnce();
+    await press(h.text(S.privacy)!);
+    expect(onOpenPrivacy).toHaveBeenCalledOnce();
+    // Forgot password is not on the same line as the two links.
+    const rowOf = (label: string) => h.root.root.findAll((n) => n.props.style && n.findAll((c) => c.props.children === label).length > 0 && n.type === 'View').at(-1);
+    expect(rowOf(S.forgot)).not.toBe(rowOf(S.features));
+    expect(rowOf(S.privacy)).toBe(rowOf(S.features));
+  });
+
   it('keeps the button off until the email has @ and a password is typed; sign-up wants the minimum', async () => {
     const h = screen();
     expect(h.text(S.signIn)!.props.disabled).toBe(true);
