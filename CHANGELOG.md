@@ -2,6 +2,10 @@
 
 Upgrade notes for app-auth-kit, newest first. Each version is tagged in git (`v1.14.0`). Every 1.x release is backward compatible unless a note says otherwise.
 
+## 1.16.0
+
+- **Features link (opt-in):** new optional `onOpenFeatures` on `SignInScreen` (new string `features`, default "Features"). When passed, "Forgot password?" sits on its own line and "Features | Privacy policy" go on the line under it. Without it the screen looks exactly as before.
+
 ## 1.15.1
 
 Nothing to change in apps.

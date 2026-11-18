@@ -76,6 +76,8 @@ export interface AuthStrings {
   forgotNeedsEmail: string;
   resetSent: string;
   privacy: string;
+  /** The Features link (with `onOpenFeatures`). */
+  features: string;
   /** The second password box when creating an account (with `confirmPassword`). */
   confirmPassword: string;
   /** Shown while the two passwords differ. */
@@ -107,6 +109,7 @@ export const DEFAULT_STRINGS: AuthStrings = {
   forgotNeedsEmail: 'Enter your email above first, then tap Forgot password.',
   resetSent: 'If that address has an account, a reset email is on its way. Check your inbox, and your spam folder too.',
   privacy: 'Privacy policy',
+  features: 'Features',
   confirmPassword: 'Confirm password',
   passwordsDiffer: "The passwords don't match.",
   show: 'Show',
