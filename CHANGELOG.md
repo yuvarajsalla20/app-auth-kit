@@ -2,6 +2,12 @@
 
 Upgrade notes for app-auth-kit, newest first. Each version is tagged in git (`v1.14.0`). Every 1.x release is backward compatible unless a note says otherwise.
 
+## 1.19.0
+
+Nothing to change in apps. iPhone and the web are unchanged.
+
+- **Apple accounts on Android.** Android has no Apple sign-in sheet, so the Android sign-in screen now says, under the sign-in buttons: "Joined with Apple on iPhone? Enter your Apple ID email, tap Forgot Password to set a password, then sign in here." It shows only on Android and only when signing in. New string `appleOnAndroid`; an empty string hides it.
+
 ## 1.18.0
 
 Nothing breaks: the new option is optional, and without it `useAuth` behaves exactly as before.

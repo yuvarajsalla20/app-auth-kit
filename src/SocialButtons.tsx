@@ -1,4 +1,4 @@
-import { Image, Pressable, View, type Text as RNText } from 'react-native';
+import { Image, Platform, Pressable, View, type Text as RNText } from 'react-native';
 import type { ComponentProps, ComponentType } from 'react';
 import type { ScreenKit } from './screenKit';
 import { GOOGLE_MARK } from './googleMark';
@@ -42,4 +42,13 @@ export function SocialButtons({ form, kit, t, styles, Text, AppleButton }: Props
       )}
     </>
   );
+}
+
+/**
+ * 1.19.0: Android has no Apple sheet, so someone who joined with Apple on iPhone is told how to log in here: add a password on
+ * iPhone, then use their email. Shown on Android when logging in, never on iPhone or the web.
+ */
+export function AppleOnAndroidNote({ form, t, styles, Text }: Pick<Props, 'form' | 't' | 'styles' | 'Text'>) {
+  if (Platform.OS !== 'android' || form.signingUp || !t.appleOnAndroid) return null;
+  return <Text style={[styles.muted, { textAlign: 'center', marginTop: 12, lineHeight: 18 }]}>{t.appleOnAndroid}</Text>;
 }
