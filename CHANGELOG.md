@@ -2,6 +2,18 @@
 
 Upgrade notes for app-auth-kit, newest first. Each version is tagged in git (`v1.14.0`). Every 1.x release is backward compatible unless a note says otherwise.
 
+## 1.17.0
+
+Nothing breaks: every addition is optional and existing calls work as before. Fixes from the 2026-11-21 review, and two pieces each app used to write itself.
+
+- **Delete Account, start to finish (new):** `createDeleteAccountFlow` (from `app-auth-kit` and `app-auth-kit/supabase`) runs the whole sequence around `deleteAccount`, so the apps stop writing their own (they had drifted apart). The app passes `erase`, `restore`, optional `marker` and `cleanups`. Any failure once the erase has started calls `restore`, at once and also after a time-out while the erase is still running (with a promise for its end); a failure before it puts nothing back. A new try waits for an earlier restore. See the README.
+- **Google on Android:** `expoNativeProviders({ googleWebClientId })` offers Google on Android (Apple stays iPhone only), with Sign Out included. Its Sign Out now sets Google up first, which Android needs. New optional `onError(where, error, extra)` reports a failed Google sheet.
+- **Google on iPhone:** the fix for "No presenting view controller found" now ships with the kit as `patches/@react-native-google-signin+google-signin+17.0.0.patch`, for patch-package (README, "Google on iPhone, the presenter fix").
+- **Supabase Delete Account** checks that Google's or Apple's sheet came back with the same account. Another account is signed out of the phone again and the delete stops with `auth/user-mismatch` before anything is erased. Before, Supabase switched to that account and deleted it instead.
+- **Supabase Sign Out** works offline: it clears this phone first (`scope: 'local'`). The person counts as signed out only once the session is really gone; a server error after that goes to `onError('sign-out')`. Before, offline Sign Out kept the person signed in while the kit believed nobody was, so password change and Delete Account stopped working.
+- **Delete Account (both kits)**, once the login is gone, forgets the phone's Google account and any held nickname, as Sign Out does.
+- The README names the current version again (it said 1.14.1); a test now checks it.
+
 ## 1.16.0
 
 - **Features link (opt-in):** new optional `onOpenFeatures` on `SignInScreen` (new string `features`, default "Features"). When passed, "Forgot password?" sits on its own line and "Features | Privacy policy" go on the line under it. Without it the screen looks exactly as before.
