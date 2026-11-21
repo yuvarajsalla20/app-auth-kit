@@ -96,4 +96,21 @@ describe('deleteAccount (other sign-in methods)', () => {
     expect(signOut).toHaveBeenCalledOnce();
     expect(onError).toHaveBeenCalledWith('native-sign-out', expect.any(Error));
   });
+  it('a finished delete also forgets the phone Google account and the held nickname, as Sign Out does', async () => {
+    const onError = vi.fn();
+    const signOut = vi.fn(async () => { throw new Error('google down'); });
+    const k = createAuthKit({ auth: authWith(['password']), native: { signOut }, onError });
+    await k.signUpEmail('a@b.com', 'long-enough', 'Hema');
+    await k.deleteAccount('pw', async () => {});
+    expect(signOut).toHaveBeenCalledOnce();
+    expect(onError).toHaveBeenCalledWith('native-sign-out', expect.any(Error));
+    expect(k.takeNickname()).toBeNull();
+  });
+  it('a delete that did not finish keeps the phone Google account', async () => {
+    const signOut = vi.fn(async () => {});
+    fns.deleteUser.mockRejectedValue(fail('auth/network-request-failed'));
+    const k = createAuthKit({ auth: authWith(['password']), native: { signOut } });
+    await expect(k.deleteAccount('pw', async () => {})).rejects.toBeTruthy();
+    expect(signOut).not.toHaveBeenCalled();
+  });
 });

@@ -13,6 +13,8 @@ interface Deps {
   timeoutMs: number;
   deleteUser: () => Promise<void>;
   revokeApple?: (authorizationCode: string) => Promise<void>;
+  /** Drops a nickname held for a sign-up, as Sign Out does. */
+  forgetNickname: () => void;
   onError?: (where: string, error: unknown) => void;
 }
 
@@ -32,18 +34,33 @@ export const confirmSupabasePassword = async (client: SupabaseClient, email: str
  * (the app deletes its own data there), then remove the login. One delete at a time; a retry after a timeout joins the
  * first erase instead of starting a second, so `eraseData` must be safe to run again.
  */
-export const createSupabaseDeleteAccount = ({ requireClient, currentUser, providers, native, timeoutMs, deleteUser, revokeApple, onError }: Deps) => {
+export const createSupabaseDeleteAccount = ({ requireClient, currentUser, providers, native, timeoutMs, deleteUser, revokeApple, forgetNickname, onError }: Deps) => {
   let running = false;
   let erasing: Promise<void> | null = null;
 
+  /**
+   * Confirming with Apple or Google signs in again, and the sheet lets the person pick any account. Unlike Firebase's
+   * re-check, Supabase then simply switches to that account, and `delete_user` would remove it instead. So a different
+   * account is signed out of this phone again and the delete stops before anything is erased.
+   */
+  const sameAccount = async (user: User, signedIn: { user: User | null }): Promise<void> => {
+    if (signedIn.user?.id === user.id) return;
+    await requireClient().auth.signOut({ scope: 'local' }).catch((e) => onError?.('sign-out', e));
+    throw coded('A different account was chosen.', 'auth/user-mismatch');
+  };
+
   const confirmIdentity = async (user: User, password: string): Promise<string | null | undefined> => {
-    if (providers.usesApple()) return (await providers.apple()).code;
+    if (providers.usesApple()) {
+      const { data, code } = await providers.apple();
+      await sameAccount(user, data);
+      return code;
+    }
     if (providers.hasPassword() && user.email) {
       await confirmSupabasePassword(requireClient(), user.email, password);
     } else if (providers.hasProvider('google')) {
       // On phones Google's sheet confirms it. On the web the open session is the proof (Supabase has no popup re-check),
       // and the app's own confirmation panel has already asked.
-      if (native.google) await providers.google();
+      if (native.google) await sameAccount(user, await providers.google());
     } else if (providers.hasProvider('apple')) {
       // Apple on the web (no sheet here): the open session is the proof, as with Google. Apple's token can only be
       // revoked with a code from the iPhone sheet, so that step is skipped on the web.
@@ -83,6 +100,9 @@ export const createSupabaseDeleteAccount = ({ requireClient, currentUser, provid
       });
       // The login is gone on the server; clear the saved session on this phone. Nothing to wait for if it fails.
       await requireClient().auth.signOut({ scope: 'local' }).catch((e) => onError?.('sign-out', e));
+      // As Sign Out does: forget the phone's Google account too, so the next sign-in asks which account.
+      forgetNickname();
+      await native.signOut?.().catch((e) => onError?.('native-sign-out', e));
     } finally {
       running = false;
     }

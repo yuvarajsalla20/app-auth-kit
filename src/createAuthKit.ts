@@ -38,7 +38,7 @@ export const createAuthKit = (options: AuthKitOptions) => {
   const nickname = createNickname(maxNickname);
   const providers = createProviders(options.auth, native);
   const sendReset = createResetCooldown(resetCooldownMs, (email) => sendPasswordResetEmail(requireAuth(), email));
-  const deleteAccount = createDeleteAccount({ requireAuth, providers, native, timeoutMs: deleteTimeoutMs, onError: options.onError });
+  const deleteAccount = createDeleteAccount({ requireAuth, providers, native, timeoutMs: deleteTimeoutMs, forgetNickname: nickname.forget, onError: options.onError });
 
   // A second sign-up tap while the first is running joins it, so one account is made and one nickname kept.
   let signingUp: Promise<UserCredential> | null = null;

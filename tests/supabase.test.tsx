@@ -10,7 +10,7 @@ import { mount, press, type } from './render';
 
 const ok = <T,>(data: T) => ({ data, error: null });
 const err = (code: string, message = code, extra: Record<string, unknown> = {}) => ({ data: { user: null, session: null }, error: { code, message, name: 'AuthApiError', status: 400, ...extra } });
-const userWith = (providers: string[], email: string | null = 'a@b.com') => ({ id: 'u1', email, app_metadata: { providers }, identities: providers.map((provider) => ({ provider })) });
+const userWith = (providers: string[], email: string | null = 'a@b.com', id = 'u1') => ({ id, email, app_metadata: { providers }, identities: providers.map((provider) => ({ provider })) });
 
 /** A stand-in Supabase client: every auth call is a spy; `as(user)` signs someone in through the listener. */
 const makeClient = (user: ReturnType<typeof userWith> | null = null) => {
@@ -29,6 +29,7 @@ const makeClient = (user: ReturnType<typeof userWith> | null = null) => {
     resetPasswordForEmail: vi.fn(async () => ok({})),
     updateUser: vi.fn(async () => ok({ user: userWith(['email']) })),
     signOut: vi.fn(async () => ({ error: null })),
+    getSession: vi.fn(async () => ok({ session: null as unknown })),
   };
   const rpc = vi.fn(async () => ({ data: null, error: null }));
   return { client: { auth, rpc } as never, auth, rpc, as: (u: unknown) => listeners.forEach((cb) => cb('SIGNED_IN', session(u))) };
@@ -254,6 +255,45 @@ describe('deleteAccount', () => {
     await expect(kit.deleteAccount('pw', async () => {})).rejects.toMatchObject({ code: 'supabase/42501' });
     expect(onError).toHaveBeenCalledWith('delete-user', expect.any(Error));
   });
+  it('Google: picking a different account on the sheet stops before anything is erased, and signs that account out', async () => {
+    const google = vi.fn(async () => 'other-token');
+    const { auth, rpc, kit } = kitFor(userWith(['google']), { native: { google } });
+    auth.signInWithIdToken.mockResolvedValueOnce(ok({ user: userWith(['google'], 'b@c.com', 'u2'), session: {} }) as never);
+    const erase = vi.fn();
+    const e = await kit.deleteAccount('', erase).catch((x) => x);
+    expect(e).toMatchObject({ code: 'auth/user-mismatch' });
+    expect(kit.message(e)).toMatch(/different account/);
+    expect(erase).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
+    expect(auth.signOut).toHaveBeenCalledWith({ scope: 'local' });
+  });
+  it('Apple: a different account from the sheet is refused the same way', async () => {
+    const apple = vi.fn(async () => ({ idToken: 't', rawNonce: 'n', authorizationCode: 'c' }));
+    const revokeApple = vi.fn();
+    const { auth, rpc, kit } = kitFor(userWith(['apple']), { native: { apple }, revokeApple });
+    auth.signInWithIdToken.mockResolvedValueOnce(ok({ user: userWith(['apple'], null, 'u2'), session: {} }) as never);
+    const erase = vi.fn();
+    expect(await kit.deleteAccount('', erase).catch((x) => x)).toMatchObject({ code: 'auth/user-mismatch' });
+    expect(erase).not.toHaveBeenCalled();
+    expect(revokeApple).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
+  });
+  it('Google: the same account from the sheet deletes as before', async () => {
+    const google = vi.fn(async () => 'tok');
+    const { rpc, kit } = kitFor(userWith(['google']), { native: { google } });
+    const erase = vi.fn(async () => {});
+    await kit.deleteAccount('', erase);
+    expect(erase).toHaveBeenCalledOnce();
+    expect(rpc).toHaveBeenCalledWith('delete_user');
+  });
+  it('a finished delete also forgets the phone Google account and the held nickname, as Sign Out does', async () => {
+    const signOut = vi.fn(async () => {});
+    const { kit } = kitFor(userWith(['email']), { native: { signOut } });
+    await kit.signUpEmail('a@b.com', 'long-enough', 'Hema');
+    await kit.deleteAccount('pw', async () => {});
+    expect(signOut).toHaveBeenCalledOnce();
+    expect(kit.takeNickname()).toBeNull();
+  });
   it('the app can supply its own deleteUser (for example an Edge Function)', async () => {
     const deleteUser = vi.fn(async () => {});
     const { rpc, kit } = kitFor(userWith(['google']), { deleteUser });
@@ -285,11 +325,30 @@ describe('sign-in state', () => {
     expect(set).toHaveBeenCalledWith({ status: 'out' });
     expect(onError).toHaveBeenCalledWith('auth-state', expect.any(Error));
   });
-  it('sign out clears the nickname and the person', async () => {
+  it('sign out clears the nickname and the person, with this phone cleared first', async () => {
     const { auth, kit } = kitFor(userWith(['email']));
     await kit.signOut();
-    expect(auth.signOut).toHaveBeenCalled();
+    expect(auth.signOut).toHaveBeenCalledWith({ scope: 'local' });
     expect(kit.hasPassword()).toBe(false);
+  });
+  it('offline: sign out still works once the session on this phone is gone, and the server error is only reported', async () => {
+    const onError = vi.fn();
+    const signOut = vi.fn(async () => {});
+    const { auth, kit } = kitFor(userWith(['email']), { onError, native: { signOut } });
+    auth.signOut.mockResolvedValueOnce(err('', 'Failed to fetch', { name: 'AuthRetryableFetchError', status: 0, code: undefined }) as never);
+    await expect(kit.signOut()).resolves.toBeUndefined();
+    expect(kit.hasPassword()).toBe(false);
+    expect(onError).toHaveBeenCalledWith('sign-out', expect.anything());
+    expect(signOut).toHaveBeenCalledOnce();
+  });
+  it('a sign out that left the session in place throws and keeps the person, so password and delete still work', async () => {
+    const signOut = vi.fn(async () => {});
+    const { auth, kit } = kitFor(userWith(['email']), { native: { signOut } });
+    auth.signOut.mockResolvedValueOnce(err('', 'Failed to fetch', { name: 'AuthRetryableFetchError', status: 0, code: undefined }) as never);
+    auth.getSession.mockResolvedValueOnce(ok({ session: { user: userWith(['email']) } }) as never);
+    await expect(kit.signOut()).rejects.toBeTruthy();
+    expect(kit.hasPassword()).toBe(true);
+    expect(signOut).not.toHaveBeenCalled();
   });
 });
 
