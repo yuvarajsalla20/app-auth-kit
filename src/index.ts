@@ -3,7 +3,7 @@ export { createAuthKit } from './createAuthKit';
 export { createDeleteAccountFlow } from './deleteAccountFlow';
 export type { DeleteAccountFlow, DeleteAccountFlowSteps, RestoreInfo } from './deleteAccountFlow';
 export type { AuthKit } from './createAuthKit';
-export type { AppleResult, AuthKitOptions, AuthState, NativeProviders } from './types';
+export type { AppleResult, AuthKitOptions, AuthState, AuthStorage, NativeProviders, RememberedUser } from './types';
 export { SignInScreen } from './SignInScreen';
 export type { SignInScreenProps } from './SignInScreen';
 export { DEFAULT_MESSAGES } from './messages';

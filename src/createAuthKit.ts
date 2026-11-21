@@ -16,6 +16,7 @@ import { createNickname } from './nickname';
 import { checkNewPassword } from './passwordRules';
 import { createPasswordActions } from './passwordActions';
 import { createProviders } from './providers';
+import { createUserMemory } from './rememberUser';
 import { createResetCooldown } from './resetCooldown';
 import type { AuthKitOptions } from './types';
 import { createUseAuth } from './useAuth';
@@ -38,7 +39,14 @@ export const createAuthKit = (options: AuthKitOptions) => {
   const nickname = createNickname(maxNickname);
   const providers = createProviders(options.auth, native);
   const sendReset = createResetCooldown(resetCooldownMs, (email) => sendPasswordResetEmail(requireAuth(), email));
-  const deleteAccount = createDeleteAccount({ requireAuth, providers, native, timeoutMs: deleteTimeoutMs, forgetNickname: nickname.forget, onError: options.onError });
+  // The remembered person (only with `storage`), read now so it is usually ready by the app's first render.
+  const memory = options.auth && options.storage ? createUserMemory(options.auth, options.storage, options.onError) : undefined;
+  void memory?.load();
+  const forgetHere = () => {
+    nickname.forget();
+    memory?.forget();
+  };
+  const deleteAccount = createDeleteAccount({ requireAuth, providers, native, timeoutMs: deleteTimeoutMs, forgetHere, onError: options.onError });
 
   // A second sign-up tap while the first is running joins it, so one account is made and one nickname kept.
   let signingUp: Promise<UserCredential> | null = null;
@@ -90,6 +98,7 @@ export const createAuthKit = (options: AuthKitOptions) => {
     signOut: async () => {
       nickname.forget();
       await firebaseSignOut(requireAuth());
+      memory?.forget();
       // Also forget the phone's Google sign-in, so the next person picks their own account. A failure here must not undo the sign-out.
       await native.signOut?.().catch((e) => options.onError?.('native-sign-out', e));
     },
@@ -97,7 +106,7 @@ export const createAuthKit = (options: AuthKitOptions) => {
     /** See `deleteAccount.ts`. */
     deleteAccount,
 
-    useAuth: createUseAuth(options.auth, options.onError),
+    useAuth: createUseAuth(options.auth, options.onError, memory),
   };
 };
 
