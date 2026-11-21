@@ -2,6 +2,16 @@
 
 Upgrade notes for app-auth-kit, newest first. Each version is tagged in git (`v1.14.0`). Every 1.x release is backward compatible unless a note says otherwise.
 
+## 1.18.0
+
+Nothing breaks: the new option is optional, and without it `useAuth` behaves exactly as before.
+
+- **Fast start (new):** pass `storage` (AsyncStorage) to `createAuthKit` and the kit remembers the last signed-in person's profile (uid, email, displayName, photoURL and the sign-in method ids; no tokens). On the next launch `useAuth` returns `{ status: 'in', user, confirming: true }` within a few milliseconds, instead of staying `loading` while Firebase refreshes the login over the network (two calls in a row, often one to several seconds on a phone signal). When Firebase answers, the state becomes the confirmed person, `out`, or the other person who is now signed in. The kit reads its own saved copy first and, the first time after an upgrade, the profile fields of Firebase's own saved login.
+- The remembered person is forgotten on Sign Out, once Delete Account has removed the login, and whenever Firebase reports nobody.
+- While `confirming` is true, `user` has the profile fields only, not Firebase's `User` methods (such as `getIdToken`). Code that needs those should wait for `confirming` to be absent; the apps read only uid, email, displayName and photoURL, which are all there. Firestore calls made meanwhile wait for the login by themselves.
+- New exported types: `AuthStorage`, `RememberedUser`. `AuthState` gains the `confirming` field.
+- Apps: `createAuthKit({ ..., storage: AsyncStorage })`. When Firebase later reports nobody (the login was revoked elsewhere), the app moves from `in` to `out`, so its normal sign-out path must handle that transition.
+
 ## 1.17.0
 
 Nothing breaks: every addition is optional and existing calls work as before. Fixes from the 2026-11-21 review, and two pieces each app used to write itself.

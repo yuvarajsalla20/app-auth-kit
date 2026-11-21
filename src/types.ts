@@ -1,6 +1,18 @@
 import type { Auth, User } from 'firebase/auth';
+import type { AuthStorage, RememberedUser } from './rememberUser';
 
-export type AuthState = { status: 'loading' } | { status: 'out' } | { status: 'in'; user: User };
+export type { AuthStorage, RememberedUser } from './rememberUser';
+
+/**
+ * The sign-in state. `confirming: true` means the person is the one this phone remembers, shown before Firebase has refreshed the
+ * login; `user` then has the profile fields only (uid, email, displayName, photoURL, providerData ids), not Firebase's `User` methods.
+ * Firebase's answer follows: the same person without `confirming`, `out`, or another person.
+ */
+export type AuthState =
+  | { status: 'loading' }
+  | { status: 'out' }
+  | { status: 'in'; user: User; confirming?: false }
+  | { status: 'in'; user: RememberedUser; confirming: true };
 
 export type { AppleResult, NativeProviders } from './providerTypes';
 import type { NativeProviders } from './providerTypes';
@@ -24,4 +36,10 @@ export interface AuthKitOptions {
   deleteTimeoutMs?: number;
   /** Shortest gap between two reset emails to the same address (ms). Stops double taps; Firebase's own server limits cover abuse. */
   resetCooldownMs?: number;
+  /**
+   * Phone storage (pass AsyncStorage) for a fast start: the kit remembers the last signed-in person's profile there, and `useAuth`
+   * returns them at once on the next launch with `confirming: true`, instead of waiting for Firebase's network refresh. Forgotten on
+   * Sign Out, on Delete Account and whenever Firebase reports nobody. Left out, `useAuth` waits for Firebase as before.
+   */
+  storage?: AuthStorage;
 }

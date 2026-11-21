@@ -10,8 +10,8 @@ interface Deps {
   providers: Providers;
   native: NativeProviders;
   timeoutMs: number;
-  /** Drops a nickname held for a sign-up, as Sign Out does. */
-  forgetNickname: () => void;
+  /** Drops what this phone holds for the person (a nickname held for a sign-up, the remembered person), as Sign Out does. */
+  forgetHere: () => void;
   onError?: (where: string, error: unknown) => void;
 }
 
@@ -21,7 +21,7 @@ interface Deps {
  * Only one delete runs at a time, and a retry after a timeout waits for the first erase instead of starting a second.
  * `eraseData` must be safe to run again, because a failed delete can be retried.
  */
-export const createDeleteAccount = ({ requireAuth, providers, native, timeoutMs, forgetNickname, onError }: Deps) => {
+export const createDeleteAccount = ({ requireAuth, providers, native, timeoutMs, forgetHere, onError }: Deps) => {
   let running = false;
   let erasing: Promise<void> | null = null;
 
@@ -75,7 +75,7 @@ export const createDeleteAccount = ({ requireAuth, providers, native, timeoutMs,
       });
       // The login is gone, which signs this phone out of Firebase. As Sign Out does, forget the phone's Google account
       // too, so the next Google sign-in asks which account instead of picking the deleted one.
-      forgetNickname();
+      forgetHere();
       await native.signOut?.().catch((e) => onError?.('native-sign-out', e));
     } finally {
       running = false;
