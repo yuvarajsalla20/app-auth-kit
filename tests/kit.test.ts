@@ -16,6 +16,6 @@ describe('kit version', () => {
 describe('package entry', () => {
   it('exports the public pieces an app imports', async () => {
     const api = await import('../src/index');
-    expect(Object.keys(api).sort()).toEqual(['DEFAULT_MESSAGES', 'DEFAULT_STRINGS', 'DEFAULT_THEME', 'KIT_NAME', 'KIT_VERSION', 'SignInScreen', 'createAuthKit']);
+    expect(Object.keys(api).sort()).toEqual(['DEFAULT_MESSAGES', 'DEFAULT_STRINGS', 'DEFAULT_THEME', 'KIT_NAME', 'KIT_VERSION', 'SignInScreen', 'createAuthKit', 'createDeleteAccountFlow']);
   });
 });
