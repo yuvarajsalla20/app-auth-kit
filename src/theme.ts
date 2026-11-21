@@ -67,6 +67,11 @@ export interface AuthStrings {
   createAccount: string;
   google: string;
   googleSignUp: string;
+  /**
+   * 1.19.0: shown on Android sign-in only, where there is no Apple button, for people who joined with Apple on iPhone.
+   * An empty string hides it.
+   */
+  appleOnAndroid: string;
   apple: string;
   appleSignUp: string;
   or: string;
@@ -100,6 +105,7 @@ export const DEFAULT_STRINGS: AuthStrings = {
   createAccount: 'Create account',
   google: 'Continue with Google',
   googleSignUp: 'Sign up with Google',
+  appleOnAndroid: 'Joined with Apple on iPhone? Enter your Apple ID email, tap Forgot Password to set a password, then sign in here.',
   apple: 'Continue with Apple',
   appleSignUp: 'Sign up with Apple',
   or: 'or',

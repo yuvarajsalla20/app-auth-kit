@@ -6,7 +6,7 @@ import { AuthFields } from './AuthFields';
 import { AuthLinks } from './AuthLinks';
 import { Reveal } from './Reveal';
 import { makeStyles } from './signInStyles';
-import { SocialButtons } from './SocialButtons';
+import { AppleOnAndroidNote, SocialButtons } from './SocialButtons';
 import { DEFAULT_STRINGS, DEFAULT_THEME, type AuthBrand, type AuthComponents, type AuthStrings, type AuthTheme } from './theme';
 import { useAuthForm } from './useAuthForm';
 import { useStable } from './useStable';
@@ -88,6 +88,7 @@ export function SignInScreen({
             {busy ? <ActivityIndicator color={theme.onPrimary ?? theme.bg} /> : <Text style={styles.primaryText}>{signingUp ? t.createAccount : t.signIn}</Text>}
           </Pressable>
           <SocialButtons form={form} kit={kit} t={t} styles={styles} Text={Text} AppleButton={components?.AppleButton} />
+          <AppleOnAndroidNote form={form} t={t} styles={styles} Text={Text} />
         </Reveal>
 
         <Reveal delay={350} style={styles.links}>

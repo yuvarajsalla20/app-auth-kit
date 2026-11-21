@@ -284,3 +284,20 @@ describe('SignInScreen confirm password and show/hide', () => {
     expect(h.label(S.showPassword)).toBeUndefined();
   });
 });
+
+describe('1.19.0 Apple accounts on Android', () => {
+  it('tells people who joined with Apple how to sign in on Android, only there and only when signing in', async () => {
+    const { Platform } = await import('./stubs/react-native');
+    const was = Platform.OS;
+    expect(screen().shown(S.appleOnAndroid)).toBe(false); // iPhone
+    Platform.OS = 'android';
+    try {
+      const h = screen();
+      expect(h.shown(S.appleOnAndroid)).toBe(true);
+      await press(h.text(S.newHere)!);
+      expect(h.shown(S.appleOnAndroid)).toBe(false);
+    } finally {
+      Platform.OS = was;
+    }
+  });
+});

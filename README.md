@@ -2,7 +2,7 @@
 
 Sign-in for React Native and Expo apps (iOS, Android and web), on **Firebase** or **Supabase**: a themeable sign-in screen, the auth functions, a sign-in state hook, password reset and change, and account deletion. Nothing in it is specific to any one app.
 
-**Current version: 1.18.0** (tag `v1.18.0`)
+**Current version: 1.19.0** (tag `v1.19.0`)
 
 Part of the shared kits:
 [app-core-kit](https://github.com/yuvarajsalla20/app-core-kit) ·
@@ -25,15 +25,15 @@ Tools that work alongside them: [code-review-kit](https://github.com/yuvarajsall
 // package.json
 "dependencies": {
   "app-core-kit": "git+https://github.com/yuvarajsalla20/app-core-kit.git#<full SHA of v1.8.0>",
-  "app-auth-kit": "git+https://github.com/yuvarajsalla20/app-auth-kit.git#<full SHA of v1.18.0>"
+  "app-auth-kit": "git+https://github.com/yuvarajsalla20/app-auth-kit.git#<full SHA of v1.19.0>"
 },
 "kitVersions": {
   "app-core-kit": "v1.8.0",
-  "app-auth-kit": "v1.18.0"
+  "app-auth-kit": "v1.19.0"
 }
 ```
 
-Pin the full commit SHA of a release tag, and write the tag in `kitVersions`. Find a SHA with `git ls-remote https://github.com/yuvarajsalla20/app-auth-kit refs/tags/v1.18.0`.
+Pin the full commit SHA of a release tag, and write the tag in `kitVersions`. Find a SHA with `git ls-remote https://github.com/yuvarajsalla20/app-auth-kit refs/tags/v1.19.0`.
 
 **Peer dependencies:**
 
