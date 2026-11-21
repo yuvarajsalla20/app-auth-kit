@@ -2,7 +2,7 @@
 
 Sign-in for React Native and Expo apps (iOS, Android and web), on **Firebase** or **Supabase**: a themeable sign-in screen, the auth functions, a sign-in state hook, password reset and change, and account deletion. Nothing in it is specific to any one app.
 
-**Current version: 1.14.1** (tag `v1.14.1`)
+**Current version: 1.17.0** (tag `v1.17.0`)
 
 Part of the shared kits:
 [app-core-kit](https://github.com/yuvarajsalla20/app-core-kit) ·
@@ -19,15 +19,15 @@ Part of the shared kits:
 // package.json
 "dependencies": {
   "app-core-kit": "git+https://github.com/yuvarajsalla20/app-core-kit.git#<full SHA of v1.6.1>",
-  "app-auth-kit": "git+https://github.com/yuvarajsalla20/app-auth-kit.git#<full SHA of v1.14.1>"
+  "app-auth-kit": "git+https://github.com/yuvarajsalla20/app-auth-kit.git#<full SHA of v1.17.0>"
 },
 "kitVersions": {
   "app-core-kit": "v1.6.1",
-  "app-auth-kit": "v1.14.1"
+  "app-auth-kit": "v1.17.0"
 }
 ```
 
-Pin the full commit SHA of a release tag, and write the tag in `kitVersions`. Find a SHA with `git ls-remote https://github.com/yuvarajsalla20/app-auth-kit refs/tags/v1.14.1`.
+Pin the full commit SHA of a release tag, and write the tag in `kitVersions`. Find a SHA with `git ls-remote https://github.com/yuvarajsalla20/app-auth-kit refs/tags/v1.17.0`.
 
 **Peer dependencies:**
 
@@ -44,8 +44,8 @@ All but the first row are optional: install the ones you use.
 
 | Import | What it holds |
 |---|---|
-| `app-auth-kit` | The Firebase kit: `createAuthKit`, `SignInScreen`, `DEFAULT_THEME`, `DEFAULT_STRINGS`, `DEFAULT_MESSAGES`, `KIT_NAME`, `KIT_VERSION` and the types |
-| `app-auth-kit/supabase` | The same kit on Supabase: `createSupabaseAuthKit` and its `SignInScreen`. Imports nothing from Firebase (a test walks its imports) |
+| `app-auth-kit` | The Firebase kit: `createAuthKit`, `createDeleteAccountFlow`, `SignInScreen`, `DEFAULT_THEME`, `DEFAULT_STRINGS`, `DEFAULT_MESSAGES`, `KIT_NAME`, `KIT_VERSION` and the types |
+| `app-auth-kit/supabase` | The same kit on Supabase: `createSupabaseAuthKit`, `createDeleteAccountFlow` and its `SignInScreen`. Imports nothing from Firebase (a test walks its imports) |
 | `app-auth-kit/native` | `expoNativeProviders`, `AppleButton`, `makeAppleButton`, `APPLE_BUTTON`: the Apple and Google sheets an Expo app would otherwise write itself |
 
 ## Quick start (Firebase)
@@ -60,7 +60,12 @@ import { auth } from './firebase';                 // your Firebase Auth, or nul
 
 export const authKit = createAuthKit({
   auth,
-  native: expoNativeProviders({ os: Platform.OS, googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID }),
+  native: expoNativeProviders({
+    os: Platform.OS,
+    googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID, // Google on Android
+    onError: reportError,
+  }),
   google: Platform.OS === 'web',                   // Google's popup on the web
   minPassword: 8,
   maxNickname: 20,
@@ -91,6 +96,35 @@ await authKit.changePassword(current, next);         // confirms the current pas
 await authKit.deleteAccount(password, async () => { /* erase this app's own data */ });
 const nickname = authKit.takeNickname();              // after sign-up, save it with the new profile
 ```
+
+### Delete Account, start to finish
+
+`createDeleteAccountFlow` wraps `deleteAccount` with the rules every app needs, so an app passes only its own steps:
+
+```ts
+import { createDeleteAccountFlow } from 'app-auth-kit';   // or 'app-auth-kit/supabase'
+
+const deleteAccountFlow = createDeleteAccountFlow<string>({   // <string>: each step gets the user ID you pass in
+  deleteAccount: authKit.deleteAccount,
+  erase: (uid) => eraseBackup(uid),                            // must be safe to run again
+  restore: async (uid, { erasing, timedOut, eraseFinished }) => {
+    stopErase();                                               // a timed-out erase may still be running
+    await erasing;                                             // wait for it to end before sending anything up again
+    await sendEverythingUpAgain(uid);
+  },
+  marker: { set: markErasing, clear: clearErasing },           // optional: a note on the phone while data may be half erased
+  cleanups: [['forget-local', forgetLocalCopy], ['stop-alerts', stopAlerts]],
+  report: reportError,
+});
+
+await deleteAccountFlow(password, uid);
+```
+
+- Nothing is erased until the kit has confirmed it is really them. A failure before the erase (wrong password, a cancelled sheet) puts nothing back.
+- Any failure once the erase has started calls `restore`, at once, even after a time-out while the erase is still running. `erasing` settles when that erase has really ended.
+- `marker.set` runs before the erase and `marker.clear` once the login is gone or `restore` has finished. Check your note on launch: if it is still there, the app was closed mid-delete, so send this phone's copy up again.
+- The screen waits for `restore` at most `restoreWaitMs` (5 s); it goes on after that, and a new try waits for it first.
+- `cleanups` run once the login is gone; a failure there is reported, never shown as "could not delete".
 
 With app-account-kit or app-settings-kit:
 
@@ -174,7 +208,7 @@ createAuthKit({ auth, native: expoNativeProviders({ os: Platform.OS, googleIosCl
 <SignInScreen kit={authKit} components={{ Text, TextInput, AppleButton }} brand={...} />
 ```
 
-`expoNativeProviders` offers Apple on iPhone, and Google once its client ID is set (empty hides it). `AppleButton` is Apple's own button in the approved size (white, 52 pt, 14 pt corners); `makeAppleButton({ dark: true })` makes a black one for a light screen. Apple's own button is recommended for App Store review.
+`expoNativeProviders` offers Apple on iPhone, and Google once its client ID is set (empty hides it): `googleIosClientId` on iPhone, `googleWebClientId` (the Web client ID from Google Cloud) on Android. Android never shows Apple. Sign Out and a finished Delete Account also sign the phone out of Google, on both. `onError(where, error, extra)` hears about a failed Google sheet (not a cancel), with the platform and the Web client ID's project number, since a wrong ID or SHA-1 fingerprint is the usual cause on Android (Google's code 10). `AppleButton` is Apple's own button in the approved size (white, 52 pt, 14 pt corners); `makeAppleButton({ dark: true })` makes a black one for a light screen. Apple's own button is recommended for App Store review.
 
 To write your own sheets instead:
 
@@ -188,6 +222,16 @@ createAuthKit({
   },
 });
 ```
+
+**Google on iPhone, the presenter fix:** Google's library can fail with "No presenting view controller found" when no window is key (after a system sheet, say). The kit ships a fix as `patches/@react-native-google-signin+google-signin+17.0.0.patch`. Apply it with patch-package:
+
+```jsonc
+// package.json
+"scripts": { "postinstall": "patch-package && patch-package --patch-dir node_modules/app-auth-kit/patches" },
+"devDependencies": { "patch-package": "^8.0.0" }
+```
+
+Pin `@react-native-google-signin/google-signin` to the version in the patch's name (17.0.0); a test in the kit checks the patch still applies to it.
 
 **Firebase console:** enable Email/Password, Apple and Google, and keep "Link accounts that use the same email" on. Google on iPhone needs the Google iOS client ID and a development or TestFlight build.
 
@@ -242,12 +286,13 @@ What is different on Supabase:
 
 ## Rules it follows
 
-- Delete account re-confirms the person first, runs **your** `eraseData`, revokes Apple, then removes the login, and gives up after 30 s so it never hangs. Only one delete runs at a time; a retry after a timeout joins the first, so `eraseData` runs once and must be safe to run again.
+- Delete account re-confirms the person first, runs **your** `eraseData`, revokes Apple, then removes the login, and gives up after 30 s so it never hangs. Only one delete runs at a time; a retry after a timeout joins the first, so `eraseData` runs once and must be safe to run again. Once the login is gone it also forgets the phone's Google account and any held nickname, as Sign Out does.
 - Wrong email, wrong password and unknown user all show the same message. Reset emails are limited to one per minute per address, and an address with no account looks the same as one that has.
 - Passwords must meet `minPassword` at sign-up and when changed, and a new password must differ from the old one.
 - A failed sign-up never leaves its nickname behind; sign-out clears it. A double tap on sign-up makes one account.
 - `useAuth` reports signed out (never stuck loading) when Firebase is not configured or the listener fails.
-- Sign out also signs the phone out of Google, so the next person picks their own account. Picking a different Apple or Google account while confirming Delete says so (`auth/user-mismatch`).
+- Sign out also signs the phone out of Google, so the next person picks their own account. Picking a different Apple or Google account while confirming Delete says so (`auth/user-mismatch`) and erases nothing, on Supabase too (where that account is signed out of the phone again).
+- Supabase Sign Out clears this phone first (`scope: 'local'`), so it works offline; ending the session on the server is then only reported.
 - Every word can be reworded through `strings` and `messages`.
 
 ## Folder layout
@@ -261,6 +306,7 @@ src/
   nickname.ts  resetCooldown.ts  passwordRules.ts  confirmPassword.ts  passwordActions.ts
   providers.ts         which sign-in methods the person uses; Apple and Google credentials
   deleteAccount.ts     re-confirm, erase once, revoke Apple, remove the login
+  deleteAccountFlow.ts Delete Account start to finish around either kit (createDeleteAccountFlow)
   useAuth.ts  errors.ts  messages.ts  theme.ts  kit.ts
   SignInScreen.tsx     the screen, with useAuthForm, AuthFields, SocialButtons, AuthLinks, signInStyles, Reveal, googleMark
   native/              expoNativeProviders and AppleButton (app-auth-kit/native)
@@ -268,6 +314,7 @@ src/
 tests/                 vitest, with stand-ins for firebase/auth, app-core-kit and a Supabase client in tests/stubs/
 typetests/             compile-time checks that both kits fit the screen and share the same actions
 native.ts supabase.ts  the entry files
+patches/               the Google presenter fix for iPhone (patch-package)
 ```
 
 ## Development
@@ -278,7 +325,7 @@ npm run typecheck
 npm test
 ```
 
-To release: bump `version` in `package.json` and `KIT_VERSION` in `src/kit.ts` (a test checks they match), add a note to [CHANGELOG.md](CHANGELOG.md), merge, then tag the merged commit.
+To release: bump `version` in `package.json`, `KIT_VERSION` in `src/kit.ts` and the version in this README (a test checks all three match), add a note to [CHANGELOG.md](CHANGELOG.md), merge, then tag the merged commit.
 
 ## Changelog
 

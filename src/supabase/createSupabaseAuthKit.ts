@@ -54,6 +54,7 @@ export const createSupabaseAuthKit = (options: SupabaseAuthKitOptions) => {
     timeoutMs: deleteTimeoutMs,
     deleteUser: options.deleteUser ?? rpcDeleteUser(requireClient, options.deleteRpc ?? 'delete_user'),
     revokeApple: options.revokeApple,
+    forgetNickname: nickname.forget,
     onError: options.onError,
   });
 
@@ -138,9 +139,18 @@ export const createSupabaseAuthKit = (options: SupabaseAuthKitOptions) => {
 
     signOut: async (): Promise<void> => {
       nickname.forget();
-      const { error } = await requireClient().auth.signOut();
+      const auth = requireClient().auth;
+      // 'local' clears this phone's session before it asks the server to end it, so signing out works offline too.
+      // (The default, 'global', keeps the session when that request fails.) Ending this phone's session on the server
+      // is then only reported: the person is signed out here either way.
+      const { error } = await auth.signOut({ scope: 'local' });
+      if (error) {
+        // Only a session that is really gone counts as signed out; otherwise the kit would believe nobody is here.
+        const stillIn = await auth.getSession().then(({ data }) => !!data.session, () => true);
+        if (stillIn) throw fromSupabase(error);
+        options.onError?.('sign-out', error);
+      }
       user = null;
-      if (error) throw fromSupabase(error);
       // Also forget the phone's Google sign-in, so the next person picks their own account.
       await native.signOut?.().catch((e) => options.onError?.('native-sign-out', e));
     },

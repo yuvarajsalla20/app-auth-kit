@@ -1,0 +1,36 @@
+diff --git a/node_modules/@react-native-google-signin/google-signin/ios/RNGoogleSignin.mm b/node_modules/@react-native-google-signin/google-signin/ios/RNGoogleSignin.mm
+index 9ef770e..aaaa586 100644
+--- a/node_modules/@react-native-google-signin/google-signin/ios/RNGoogleSignin.mm
++++ b/node_modules/@react-native-google-signin/google-signin/ios/RNGoogleSignin.mm
+@@ -237,8 +237,31 @@ RCT_EXPORT_METHOD(getTokens:(RCTPromiseResolveBlock)resolve
+     resolve([NSNull null]);
+ }
+ 
++// app-auth-kit patch: RCTPresentedViewController() starts from the scene's key window and gives nil when no window is key
++// (for example after a system sheet or another window was shown and hidden). Fall back to the app's own visible window,
++// make it key again, and present from the top of its stack.
++static UIViewController *RNGSFallbackPresenter(void) {
++  for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
++    if (![scene isKindOfClass:[UIWindowScene class]]) continue;
++    if (scene.activationState != UISceneActivationStateForegroundActive && scene.activationState != UISceneActivationStateForegroundInactive) continue;
++    for (UIWindow *window in ((UIWindowScene *)scene).windows) {
++      if (window.isHidden || window.windowLevel != UIWindowLevelNormal || window.rootViewController == nil) continue;
++      [window makeKeyWindow];
++      UIViewController *controller = window.rootViewController;
++      while (controller.presentedViewController != nil && !controller.presentedViewController.isBeingDismissed) {
++        controller = controller.presentedViewController;
++      }
++      return controller;
++    }
++  }
++  return nil;
++}
++
+ - (UIViewController *)getPresentingViewControllerOrReject:(RCTPromiseRejectBlock)reject {
+   UIViewController *viewController = RCTPresentedViewController();
++  if (viewController == nil) {
++    viewController = RNGSFallbackPresenter();
++  }
+   if (viewController == nil) {
+     reject(@"NULL_PRESENTER", @"No presenting view controller found. Cannot present sign-in UI.", nil);
+   }

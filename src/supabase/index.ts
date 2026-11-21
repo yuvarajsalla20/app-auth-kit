@@ -1,6 +1,8 @@
 // app-auth-kit/supabase: the same kit on Supabase Auth. Imports nothing from Firebase.
 export { KIT_NAME, KIT_VERSION } from '../kit';
 export { createSupabaseAuthKit } from './createSupabaseAuthKit';
+export { createDeleteAccountFlow } from '../deleteAccountFlow';
+export type { DeleteAccountFlow, DeleteAccountFlowSteps, RestoreInfo } from '../deleteAccountFlow';
 export type { SupabaseAuthKit } from './createSupabaseAuthKit';
 export type { AppleResult, NativeProviders, SupabaseAuthKitOptions, SupabaseAuthState } from './types';
 export { fromSupabase } from './errors';

@@ -1,5 +1,7 @@
 export { KIT_NAME, KIT_VERSION } from './kit';
 export { createAuthKit } from './createAuthKit';
+export { createDeleteAccountFlow } from './deleteAccountFlow';
+export type { DeleteAccountFlow, DeleteAccountFlowSteps, RestoreInfo } from './deleteAccountFlow';
 export type { AuthKit } from './createAuthKit';
 export type { AppleResult, AuthKitOptions, AuthState, NativeProviders } from './types';
 export { SignInScreen } from './SignInScreen';
