@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createAuthKit } from '../src/createAuthKit';
+import { createAuthKit } from '../src/session/createAuthKit';
 import { authWith, fail, fns, resetSpies } from './helpers';
 
 beforeEach(resetSpies);

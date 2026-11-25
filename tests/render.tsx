@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import TestRenderer, { act, type ReactTestInstance, type ReactTestRenderer } from 'react-test-renderer';
 import { vi } from 'vitest';
-import type { AuthKit } from '../src/createAuthKit';
+import type { AuthKit } from '../src/session/createAuthKit';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 

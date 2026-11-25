@@ -1,4 +1,4 @@
-import { coded } from './errors';
+import { coded } from '../shared/errors';
 
 /** Throws the same plain error at sign-up and when changing a password, so the rules cannot differ. */
 export const checkNewPassword = (minLength: number, next: string, current?: string): void => {

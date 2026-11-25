@@ -1,7 +1,7 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import { withTimeout } from 'app-core-kit';
-import { codeOf, coded } from '../errors';
-import type { NativeProviders } from '../providerTypes';
+import { codeOf, coded } from '../shared/errors';
+import type { NativeProviders } from '../shared/providerTypes';
 import { fromSupabase, unwrap } from './errors';
 import type { SupabaseProviders } from './providers';
 

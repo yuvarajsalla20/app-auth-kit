@@ -1,6 +1,6 @@
 import { GoogleAuthProvider, OAuthProvider, type Auth, type AuthCredential } from 'firebase/auth';
-import { coded } from './errors';
-import type { NativeProviders } from './types';
+import { coded } from '../shared/errors';
+import type { NativeProviders } from '../types';
 
 /** Which sign-in methods the current person uses, and the credentials the phone's sheets hand back. */
 export const createProviders = (auth: Auth | null, native: NativeProviders) => {

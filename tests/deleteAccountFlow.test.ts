@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createAuthKit } from '../src/createAuthKit';
-import { createDeleteAccountFlow, type DeleteAccountFlowSteps } from '../src/deleteAccountFlow';
+import { createAuthKit } from '../src/session/createAuthKit';
+import { createDeleteAccountFlow, type DeleteAccountFlowSteps } from '../src/delete-account/deleteAccountFlow';
 import { createDeleteAccountFlow as fromSupabaseEntry } from '../supabase';
 import { authWith, deferred, fail, fns, resetSpies } from './helpers';
 

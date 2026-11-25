@@ -1,7 +1,7 @@
 import { onAuthStateChanged, type Auth } from 'firebase/auth';
 import { useEffect, useState } from 'react';
 import type { UserMemory } from './rememberUser';
-import type { AuthState } from './types';
+import type { AuthState } from '../types';
 
 /**
  * Reports the sign-in state. Not configured, or turned off, counts as signed out so the app never waits forever. Returns the unsubscribe.

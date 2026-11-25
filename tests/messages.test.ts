@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createAuthKit } from '../src/createAuthKit';
-import { FALLBACK_MESSAGE } from '../src/messages';
+import { createAuthKit } from '../src/session/createAuthKit';
+import { FALLBACK_MESSAGE } from '../src/shared/messages';
 
 const kit = createAuthKit({ auth: null, minPassword: 10 });
 

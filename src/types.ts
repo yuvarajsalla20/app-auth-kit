@@ -1,7 +1,7 @@
 import type { Auth, User } from 'firebase/auth';
-import type { AuthStorage, RememberedUser } from './rememberUser';
+import type { AuthStorage, RememberedUser } from './session/rememberUser';
 
-export type { AuthStorage, RememberedUser } from './rememberUser';
+export type { AuthStorage, RememberedUser } from './session/rememberUser';
 
 /**
  * The sign-in state. `confirming: true` means the person is the one this phone remembers, shown before Firebase has refreshed the
@@ -14,8 +14,8 @@ export type AuthState =
   | { status: 'in'; user: User; confirming?: false }
   | { status: 'in'; user: RememberedUser; confirming: true };
 
-export type { AppleResult, NativeProviders } from './providerTypes';
-import type { NativeProviders } from './providerTypes';
+export type { AppleResult, NativeProviders } from './shared/providerTypes';
+import type { NativeProviders } from './shared/providerTypes';
 
 export interface AuthKitOptions {
   /** The app's own Firebase Auth instance, or null while the app has no Firebase settings. */

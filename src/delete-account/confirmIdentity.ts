@@ -1,8 +1,8 @@
 import { GoogleAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup, type User } from 'firebase/auth';
-import { confirmPassword } from './confirmPassword';
-import { coded } from './errors';
-import type { Providers } from './providers';
-import type { NativeProviders } from './types';
+import { confirmPassword } from '../password/confirmPassword';
+import { coded } from '../shared/errors';
+import type { Providers } from '../session/providers';
+import type { NativeProviders } from '../types';
 
 /** What the check returns: `cancelled` when no password was given; `appleCode` for revoking an Apple token later. */
 export type IdentityResult = { cancelled: true } | { cancelled: false; appleCode?: string | null };

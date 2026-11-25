@@ -1,9 +1,9 @@
 import type { AuthResponse, SupabaseClient, User } from '@supabase/supabase-js';
-import { coded, codeOf } from '../errors';
-import { DEFAULT_MESSAGES, FALLBACK_MESSAGE } from '../messages';
-import { createNickname } from '../nickname';
-import { checkNewPassword } from '../passwordRules';
-import { createResetCooldown } from '../resetCooldown';
+import { coded, codeOf } from '../shared/errors';
+import { DEFAULT_MESSAGES, FALLBACK_MESSAGE } from '../shared/messages';
+import { createNickname } from '../session/nickname';
+import { checkNewPassword } from '../password/passwordRules';
+import { createResetCooldown } from '../password/resetCooldown';
 import { confirmSupabasePassword, createSupabaseDeleteAccount, rpcDeleteUser } from './deleteAccount';
 import { fromSupabase, unwrap } from './errors';
 import { SUPABASE_MESSAGES } from './messages';

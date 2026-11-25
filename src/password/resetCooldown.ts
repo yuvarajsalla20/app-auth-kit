@@ -1,4 +1,4 @@
-import { coded, codeOf } from './errors';
+import { coded, codeOf } from '../shared/errors';
 
 /**
  * Sends at most one reset email per address per cooldown, so a double tap sends one. The time is taken before the

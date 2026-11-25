@@ -9,17 +9,17 @@ import {
   type Auth,
   type UserCredential,
 } from 'firebase/auth';
-import { createConfirmIdentity } from './confirmIdentity';
-import { createDeleteAccount } from './deleteAccount';
-import { codeOf } from './errors';
-import { DEFAULT_MESSAGES, FALLBACK_MESSAGE } from './messages';
+import { createConfirmIdentity } from '../delete-account/confirmIdentity';
+import { createDeleteAccount } from '../delete-account/deleteAccount';
+import { codeOf } from '../shared/errors';
+import { DEFAULT_MESSAGES, FALLBACK_MESSAGE } from '../shared/messages';
 import { createNickname } from './nickname';
-import { checkNewPassword } from './passwordRules';
-import { createPasswordActions } from './passwordActions';
+import { checkNewPassword } from '../password/passwordRules';
+import { createPasswordActions } from '../password/passwordActions';
 import { createProviders } from './providers';
 import { createUserMemory } from './rememberUser';
-import { createResetCooldown } from './resetCooldown';
-import type { AuthKitOptions } from './types';
+import { createResetCooldown } from '../password/resetCooldown';
+import type { AuthKitOptions } from '../types';
 import { createUseAuth } from './useAuth';
 
 /**

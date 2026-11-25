@@ -1,7 +1,7 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js';
-import type { NativeProviders } from '../providerTypes';
+import type { NativeProviders } from '../shared/providerTypes';
 
-export type { AppleResult, NativeProviders } from '../providerTypes';
+export type { AppleResult, NativeProviders } from '../shared/providerTypes';
 
 export type SupabaseAuthState = { status: 'loading' } | { status: 'out' } | { status: 'in'; user: User };
 
