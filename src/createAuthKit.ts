@@ -9,6 +9,7 @@ import {
   type Auth,
   type UserCredential,
 } from 'firebase/auth';
+import { createConfirmIdentity } from './confirmIdentity';
 import { createDeleteAccount } from './deleteAccount';
 import { codeOf } from './errors';
 import { DEFAULT_MESSAGES, FALLBACK_MESSAGE } from './messages';
@@ -46,6 +47,7 @@ export const createAuthKit = (options: AuthKitOptions) => {
     nickname.forget();
     memory?.forget();
   };
+  const confirmIdentity = createConfirmIdentity(providers, native);
   const deleteAccount = createDeleteAccount({ requireAuth, providers, native, timeoutMs: deleteTimeoutMs, forgetHere, onError: options.onError });
 
   // A second sign-up tap while the first is running joins it, so one account is made and one nickname kept.
@@ -105,6 +107,22 @@ export const createAuthKit = (options: AuthKitOptions) => {
 
     /** See `deleteAccount.ts`. */
     deleteAccount,
+
+    /**
+     * Confirms that the signed-in person is still the one using the phone (e.g., "Forgot PIN" in app-guard-kit), with
+     * the way they signed up: Apple, their password (asked through `askPassword`), or Google. It re-authenticates the
+     * same account and never signs anyone else in. Resolves true when confirmed; false when cancelled, wrong or failed.
+     */
+    reconfirm: async (askPassword: (email: string) => Promise<string | null>): Promise<boolean> => {
+      const user = options.auth?.currentUser;
+      if (!user) return false;
+      try {
+        return !(await confirmIdentity(user, askPassword)).cancelled;
+      } catch (e) {
+        options.onError?.('reconfirm', e);
+        return false;
+      }
+    },
 
     useAuth: createUseAuth(options.auth, options.onError, memory),
   };

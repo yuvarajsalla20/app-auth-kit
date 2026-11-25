@@ -1,6 +1,6 @@
-import { deleteUser, GoogleAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup, revokeAccessToken, type Auth } from 'firebase/auth';
+import { deleteUser, revokeAccessToken, type Auth } from 'firebase/auth';
 import { withTimeout } from 'app-core-kit';
-import { confirmPassword } from './confirmPassword';
+import { createConfirmIdentity } from './confirmIdentity';
 import { coded } from './errors';
 import type { Providers } from './providers';
 import type { NativeProviders } from './types';
@@ -25,22 +25,7 @@ export const createDeleteAccount = ({ requireAuth, providers, native, timeoutMs,
   let running = false;
   let erasing: Promise<void> | null = null;
 
-  const confirmIdentity = async (user: NonNullable<Auth['currentUser']>, password: string): Promise<string | null | undefined> => {
-    if (providers.usesApple()) {
-      const { credential, code } = await providers.appleCredential();
-      await reauthenticateWithCredential(user, credential);
-      return code;
-    }
-    if (providers.hasPassword() && user.email) {
-      await confirmPassword(user, user.email, password);
-    } else if (providers.hasProvider('google.com')) {
-      if (native.google) await reauthenticateWithCredential(user, await providers.googleCredential());
-      else await reauthenticateWithPopup(user, new GoogleAuthProvider());
-    } else {
-      throw coded('Cannot confirm this sign-in method here.', 'auth/requires-recent-login');
-    }
-    return undefined;
-  };
+  const confirmIdentity = createConfirmIdentity(providers, native);
 
   /** Starts the erase once; a retry while it is still running joins it. Gives up waiting after the timeout. */
   const erase = (eraseData: () => Promise<void>): Promise<void> => {
@@ -64,7 +49,9 @@ export const createDeleteAccount = ({ requireAuth, providers, native, timeoutMs,
     try {
       const user = requireAuth().currentUser;
       if (!user) throw new Error('Sign in first.');
-      const appleCode = await confirmIdentity(user, password);
+      const checked = await confirmIdentity(user, async () => password);
+      if (checked.cancelled) throw coded('Wrong current password.', 'auth/wrong-current-password');
+      const appleCode = checked.appleCode;
       await erase(eraseData);
       // Apple requires the app to revoke its token when a Sign in with Apple account is deleted.
       // A failed revoke must not leave the person with an undeletable account, so it is reported and the deletion goes on.
