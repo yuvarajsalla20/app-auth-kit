@@ -3,8 +3,8 @@ import { dirname, resolve } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createSupabaseAuthKit } from '../src/supabase';
 import { subscribeSupabaseAuth } from '../src/supabase/useSupabaseAuth';
-import { SignInScreen } from '../src/SignInScreen';
-import { DEFAULT_STRINGS as S } from '../src/theme';
+import { SignInScreen } from '../src/sign-in/SignInScreen';
+import { DEFAULT_STRINGS as S } from '../src/sign-in/theme';
 import { deferred } from './helpers';
 import { mount, press, type } from './render';
 

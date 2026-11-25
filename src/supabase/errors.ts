@@ -1,4 +1,4 @@
-import { coded } from '../errors';
+import { coded } from '../shared/errors';
 
 /** Supabase error codes, turned into the kit's `auth/...` codes so the same texts (and the app's own overrides) apply. */
 const CODES: Record<string, string> = {

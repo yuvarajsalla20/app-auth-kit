@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { subscribeAuth } from '../src/useAuth';
+import { subscribeAuth } from '../src/session/useAuth';
 import { fns, resetSpies } from './helpers';
 
 beforeEach(resetSpies);

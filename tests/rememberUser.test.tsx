@@ -1,10 +1,10 @@
 import { createElement } from 'react';
 import TestRenderer, { act } from 'react-test-renderer';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createAuthKit } from '../src/createAuthKit';
-import { createUserMemory, REMEMBERED_USER_KEY, type AuthStorage } from '../src/rememberUser';
+import { createAuthKit } from '../src/session/createAuthKit';
+import { createUserMemory, REMEMBERED_USER_KEY, type AuthStorage } from '../src/session/rememberUser';
 import type { AuthState } from '../src/types';
-import { subscribeAuth } from '../src/useAuth';
+import { subscribeAuth } from '../src/session/useAuth';
 import { fns, resetSpies } from './helpers';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;

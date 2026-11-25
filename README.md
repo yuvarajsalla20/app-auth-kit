@@ -2,7 +2,7 @@
 
 Sign-in for React Native and Expo apps (iOS, Android and web), on **Firebase** or **Supabase**: a themeable sign-in screen, the auth functions, a sign-in state hook, password reset and change, and account deletion. Nothing in it is specific to any one app.
 
-**Current version: 1.20.0** (tag `v1.20.0`)
+**Current version: 1.20.1** (tag `v1.20.1`)
 
 Part of the shared kits:
 [app-core-kit](https://github.com/yuvarajsalla20/app-core-kit) ·
@@ -25,15 +25,15 @@ Tools that work alongside them: [code-review-kit](https://github.com/yuvarajsall
 // package.json
 "dependencies": {
   "app-core-kit": "git+https://github.com/yuvarajsalla20/app-core-kit.git#<full SHA of v1.8.0>",
-  "app-auth-kit": "git+https://github.com/yuvarajsalla20/app-auth-kit.git#<full SHA of v1.20.0>"
+  "app-auth-kit": "git+https://github.com/yuvarajsalla20/app-auth-kit.git#<full SHA of v1.20.1>"
 },
 "kitVersions": {
   "app-core-kit": "v1.8.0",
-  "app-auth-kit": "v1.20.0"
+  "app-auth-kit": "v1.20.1"
 }
 ```
 
-Pin the full commit SHA of a release tag, and write the tag in `kitVersions`. Find a SHA with `git ls-remote https://github.com/yuvarajsalla20/app-auth-kit refs/tags/v1.20.0`.
+Pin the full commit SHA of a release tag, and write the tag in `kitVersions`. Find a SHA with `git ls-remote https://github.com/yuvarajsalla20/app-auth-kit refs/tags/v1.20.1`.
 
 **Peer dependencies:**
 
@@ -304,18 +304,16 @@ What is different on Supabase:
 
 ## Folder layout
 
+The code is grouped by feature. Each folder is one job, with everything only it uses; a file that two or more features use lives in `shared/`.
+
 ```
 src/
-  createAuthKit.ts     puts the pieces together and returns the Firebase kit
-  types.ts             AuthKitOptions, AuthState
-  providerTypes.ts     NativeProviders, AppleResult (shared by both kits)
-  screenKit.ts         what the sign-in screen needs from a kit
-  nickname.ts  resetCooldown.ts  passwordRules.ts  confirmPassword.ts  passwordActions.ts
-  providers.ts         which sign-in methods the person uses; Apple and Google credentials
-  deleteAccount.ts     re-confirm, erase once, revoke Apple, remove the login
-  deleteAccountFlow.ts Delete Account start to finish around either kit (createDeleteAccountFlow)
-  useAuth.ts  errors.ts  messages.ts  theme.ts  kit.ts
-  SignInScreen.tsx     the screen, with useAuthForm, AuthFields, SocialButtons, AuthLinks, signInStyles, Reveal, googleMark
+  index.ts  kit.ts  types.ts   the main entry, KIT_VERSION, AuthKitOptions and AuthState
+  session/             createAuthKit (puts the pieces together), useAuth, rememberUser, providers (Apple and Google credentials), the sign-up nickname
+  sign-in/             SignInScreen, with useAuthForm, AuthFields, SocialButtons, AuthLinks, Reveal, googleMark, signInStyles, screenKit and the theme and words
+  password/            password rules, reset cooldown, confirm password, change password
+  delete-account/      deleteAccount (re-confirm, erase once, revoke Apple, remove the login), createDeleteAccountFlow, confirmIdentity
+  shared/              errors, messages, NativeProviders and AppleResult (shared by both kits)
   native/              expoNativeProviders and AppleButton (app-auth-kit/native)
   supabase/            the Supabase kit (app-auth-kit/supabase)
 tests/                 vitest, with stand-ins for firebase/auth, app-core-kit and a Supabase client in tests/stubs/

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { GOOGLE_MARK } from '../src/googleMark';
-import { SignInScreen } from '../src/SignInScreen';
-import { DEFAULT_STRINGS as S } from '../src/theme';
+import { GOOGLE_MARK } from '../src/sign-in/googleMark';
+import { SignInScreen } from '../src/sign-in/SignInScreen';
+import { DEFAULT_STRINGS as S } from '../src/sign-in/theme';
 import { motion } from './stubs/react-native';
 import { act, fakeKit, focused, mount, press, submit, type } from './render';
 

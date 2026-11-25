@@ -2,6 +2,13 @@
 
 Upgrade notes for app-auth-kit, newest first. Each version is tagged in git (`v1.14.0`). Every 1.x release is backward compatible unless a note says otherwise.
 
+## 1.20.1
+
+Nothing to change in apps. Existing behaviour is unchanged.
+
+- The source is grouped by feature (`session/`, `sign-in/`, `password/`, `delete-account/`, `shared/`) instead of loose files. `app-auth-kit`, `app-auth-kit/native` and `app-auth-kit/supabase` export exactly what they did.
+- `KIT_VERSION` now matches the package version again (1.20.0 still said 1.19.0).
+
 ## 1.20.0
 
 Nothing to change in apps. Existing behaviour is unchanged.

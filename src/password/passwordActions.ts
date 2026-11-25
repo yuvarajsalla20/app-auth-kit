@@ -1,8 +1,8 @@
 import { updatePassword, type Auth } from 'firebase/auth';
 import { confirmPassword } from './confirmPassword';
-import { coded } from './errors';
+import { coded } from '../shared/errors';
 import { checkNewPassword } from './passwordRules';
-import type { Providers } from './providers';
+import type { Providers } from '../session/providers';
 
 interface Deps {
   requireAuth: () => Auth;

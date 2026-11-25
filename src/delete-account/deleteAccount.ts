@@ -1,9 +1,9 @@
 import { deleteUser, revokeAccessToken, type Auth } from 'firebase/auth';
 import { withTimeout } from 'app-core-kit';
 import { createConfirmIdentity } from './confirmIdentity';
-import { coded } from './errors';
-import type { Providers } from './providers';
-import type { NativeProviders } from './types';
+import { coded } from '../shared/errors';
+import type { Providers } from '../session/providers';
+import type { NativeProviders } from '../types';
 
 interface Deps {
   requireAuth: () => Auth;

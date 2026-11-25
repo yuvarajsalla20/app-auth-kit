@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createAuthKit } from '../src/createAuthKit';
-import { createNickname } from '../src/nickname';
+import { createAuthKit } from '../src/session/createAuthKit';
+import { createNickname } from '../src/session/nickname';
 import { authWith, deferred, fail, fns, resetSpies } from './helpers';
 
 beforeEach(resetSpies);

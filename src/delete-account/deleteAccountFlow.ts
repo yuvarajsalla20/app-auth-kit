@@ -1,5 +1,5 @@
 // Delete Account from start to finish, around either kit's `deleteAccount`. Imports no backend, so both entries export it.
-import { codeOf, coded } from './errors';
+import { codeOf, coded } from '../shared/errors';
 
 /** What the delete went through before it failed, handed to `restore`. */
 export interface RestoreInfo {

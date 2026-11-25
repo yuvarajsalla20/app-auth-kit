@@ -1,6 +1,6 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js';
-import { coded } from '../errors';
-import type { NativeProviders } from '../providerTypes';
+import { coded } from '../shared/errors';
+import type { NativeProviders } from '../shared/providerTypes';
 import { unwrap } from './errors';
 
 /**

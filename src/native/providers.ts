@@ -1,4 +1,4 @@
-import type { NativeProviders } from '../providerTypes';
+import type { NativeProviders } from '../shared/providerTypes';
 
 export interface ExpoNativeOptions {
   /** The iOS client ID from Google Cloud. Leave it out (or empty) to hide Google on iPhone until it is set up. */

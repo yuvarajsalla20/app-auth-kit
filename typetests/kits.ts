@@ -1,7 +1,7 @@
 // Compile-time checks (run by `npm run typecheck`): both kits fit the sign-in screen and keep the same action signatures.
-import type { AuthKit } from '../src/createAuthKit';
-import { createDeleteAccountFlow, type DeleteAccountFlowSteps } from '../src/deleteAccountFlow';
-import type { ScreenKit } from '../src/screenKit';
+import type { AuthKit } from '../src/session/createAuthKit';
+import { createDeleteAccountFlow, type DeleteAccountFlowSteps } from '../src/delete-account/deleteAccountFlow';
+import type { ScreenKit } from '../src/sign-in/screenKit';
 import type { SupabaseAuthKit } from '../supabase';
 
 export const firebaseFitsScreen = (k: AuthKit): ScreenKit => k;
