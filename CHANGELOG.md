@@ -2,6 +2,13 @@
 
 Upgrade notes for app-auth-kit, newest first. Each version is tagged in git (`v1.14.0`). Every 1.x release is backward compatible unless a note says otherwise.
 
+## 1.20.0
+
+Nothing to change in apps. Existing behaviour is unchanged.
+
+- **Reconfirm.** New `reconfirm(askPassword)` confirms that the signed-in person is still the one using the phone, e.g., for "Forgot PIN" in app-guard-kit. It uses the way they signed up: Apple, their password (the app's `askPassword(email)` returns it, or null when closed), or Google. It re-authenticates the same account and never signs anyone else in. It resolves true when confirmed and false when cancelled, wrong or failed (reported to `onError` as `reconfirm`).
+- Delete Account and `reconfirm` now share one identity check (`confirmIdentity.ts`).
+
 ## 1.19.0
 
 Nothing to change in apps. iPhone and the web are unchanged.

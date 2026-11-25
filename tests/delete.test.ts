@@ -114,3 +114,32 @@ describe('deleteAccount (other sign-in methods)', () => {
     expect(signOut).not.toHaveBeenCalled();
   });
 });
+
+describe('reconfirm', () => {
+  const make = (providers: string[], extra = {}) => createAuthKit({ auth: authWith(providers), ...extra });
+
+  it('re-authenticates a password account with the password it is given', async () => {
+    const ask = vi.fn(async () => 'pw');
+    expect(await make(['password']).reconfirm(ask)).toBe(true);
+    expect(ask).toHaveBeenCalledWith('a@b.com');
+    expect(fns.reauthenticateWithCredential).toHaveBeenCalledTimes(1);
+  });
+  it('is false when the password page is closed, without asking Firebase', async () => {
+    expect(await make(['password']).reconfirm(async () => null)).toBe(false);
+    expect(fns.reauthenticateWithCredential).not.toHaveBeenCalled();
+  });
+  it('is false for a wrong password, and reports it', async () => {
+    const onError = vi.fn();
+    fns.reauthenticateWithCredential.mockRejectedValue(fail('auth/invalid-credential'));
+    expect(await make(['password'], { onError }).reconfirm(async () => 'bad')).toBe(false);
+    expect(onError).toHaveBeenCalledWith('reconfirm', expect.anything());
+  });
+  it('never signs anyone in', async () => {
+    await make(['password']).reconfirm(async () => 'pw');
+    expect(fns.signInWithEmailAndPassword).not.toHaveBeenCalled();
+    expect(fns.signInWithCredential).not.toHaveBeenCalled();
+  });
+  it('is false with nobody signed in', async () => {
+    expect(await createAuthKit({ auth: authWith([], null) }).reconfirm(async () => 'pw')).toBe(false);
+  });
+});
